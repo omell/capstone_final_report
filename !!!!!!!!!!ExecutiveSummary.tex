@@ -1,0 +1,41 @@
+\section*{Executive Summary}
+With the emergence of the Internet of Things (IoT), it is increasingly common for embedded devices and electronics to be low powered and portable. These devices often require a number of different power supply voltages and therefore during the development and testing phases it is important for an electronic engineer to have a configurable source of power. Currently large, expensive laboratory bench top power supplies are used for this purpose, however for low powered applications they are typically excessive and inconvenient. This report outlines the design of a low cost, portable USB bench top power supply that will assist in the quick iteration of designs and allow engineers to bring their product to market faster.
+\\ \\
+The product uses ultracapacitors as an energy storage device such that power can be supplied over a single USB connection from an external computer, and also ensure that the device remains operational for short periods of time if disconnected. It is capable of providing a user selectable output voltage from \SI{0}{V} to \SI{25}{V}, selected from a GUI running on the connected computer, and does so through an internal DC-DC converter. To ensure a wide operating range for a variety of voltages and loads a digital feedback controller was implemented using a microcontroller. The hardware also incorporates associated circuitry to safely charge the ultracapacitor, voltage sensing and actuation circuitry for the digital controller in addition to overcurrent and voltage protection. The solution is robust, and the design, implementation and testing are discussed in the following report.
+
+
+\begin{comment}
+Ultra-capacitors are being used as an alternative to batteries as it offers advantages such as charging speed and high energy density. However due to linear relationship between current and voltage of capacitor, additional circuitry is required to emulate battery like behaviour. 
+
+This report documented the steps taken in design in the areas of control, hardware, and programming, relevant to the construction of an ultra-capacitor charge management system.
+\newpar
+A model of the DC-DC converter at the basis of such a system was generated based on circuit analysis and mathematical relations, and was updated as required according to results of experiments and simulations.
+\newpar
+The model returned by this process was used to generate a control regime based on state feedback and integral action. A Luenberger observer was implemented to generate estimates of state variables. LQR was used to populate the control gain matricies.
+\newpar
+Circuitry to power peripheral components was designed and characterised, along with circuitry to charge the ultra-capacitors. A digital signal processing microcontroller was the computational element at the core of our hardware deliverable, which interfaced with sensing circuitry, power circuitry, and USB through UART.
+\newpar
+The process of programming this microcontroller was documented, along with techniques for implementing our observer regime.
+\newpar
+The entire system was simulated according to parameters corresponding to components used in constructing the hardware prototypes.
+\newpar
+Intricacies encountered when connecting the subsystems were documented. Performance of the control regime in hardware is yet to be documented.
+\end{comment}
+
+\begin{comment}
+\begin{enumerate}
+    \item make state-space model of DC-DC converter
+    \item build prototype converter
+    \item update model based on experimental results
+    \item design control and observer regime
+    \item design peripheral hardware circuitry and select components
+    \item build prototype with microcontroller
+    \item program microcontroller
+    \item update peripheral hardware circuitry and component selection
+    \item build prototype
+    \item collect data on performance
+\end{enumerate}
+\end{comment}
+
+% \newpage
+% \section*{Acknowledgements}

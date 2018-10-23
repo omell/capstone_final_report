@@ -1,0 +1,14 @@
+\section{Conclusion}
+This report documented the steps taken in design in the areas of control, hardware, and programming, relevant to the construction of an ultra-capacitor charge management system.
+\newpar
+A model of the DC-DC converter at the basis of such a system was generated based on circuit analysis and mathematical relations, and was updated as required according to results of experiments and simulations.
+\newpar
+The model returned by this process was used to generate a control regime based on state feedback and integral action. A Luenberger observer was implemented to generate estimates of state variables. LQR was used to populate the control gain matricies.
+\newpar
+Circuitry to power peripheral components was designed and characterised, along with circuitry to charge the ultra-capacitors. A digital signal processing microcontroller was the computational element at the core of our hardware deliverable, which interfaced with sensing circuitry, power circuitry, and USB through UART.
+\newpar
+The process of programming this microcontroller was documented, along with techniques for implementing our observer regime.
+\newpar
+The entire system was simulated according to parameters corresponding to components used in constructing the hardware prototypes.
+\newpar
+Intricacies encountered when connecting the subsystems were documented. Performance of the control regime in hardware is yet to be documented.

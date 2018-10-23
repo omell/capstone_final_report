@@ -1,0 +1,98 @@
+\section{Overview}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Our project may be considered in reference to: modelling and control; hardware; and programming. Modelling involved the generation of a state-space model of a DC-DC converter and subsequent linearisation. Control design was done through LQR to produce observer state feedback and integral action regimes. Hardware design included component selections, PCB design, and peripheral circuit analysis. Programming produced a microcontroller that could interface with a DC-DC converter and peripherals, and communicate over USB.
+\newpar
+A table summarising system parameters is provided in Table~\ref{tab:overview}. A block diagram showing connections between these modules is provided in Figure~\ref{flow:system_architecture_overview}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+    Charging circuitry & LTC4425 by Analog Device\\
+    \hline
+    Ultra-capacitors & $2 \times$ AVX 35F 2.7V in series; mounted on PCB\\
+    \hline
+    Input voltage sensing & op-amp buffer\\
+    \hline
+    Output voltage sensing & op-amp inverter $\rightarrow$ op-amp buffer\\
+    \hline
+    DC-DC converter & \'{C}uk converter\\
+    \hline
+    Load & Resistor\\
+    \hline
+    Gate driver & TC4427A by Microship\\
+    \hline
+    ADC & 12-bit SAR; sampling frequency $10 \ \mathsf{kHz}$\\
+    \hline
+    PWM & $100 \ \mathsf{kHz}$ switching signal; variable duty ratio\\
+    \hline
+    UART & Baud rate $9600$\\
+    \hline
+    \end{tabular}
+    \caption{Design choices overview}
+    \label{tab:overview}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tikzstyle{block} = [rectangle, draw, fill=\myblue, 
+    text width=5em, text badly centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, -latex']
+\begin{figure}[H]
+\centering
+\fbox{
+\begin{tikzpicture}[node distance = 1.85cm]
+\node [block, fill=\myorange] (cuk) {DC-DC converter};
+\node [block, below = of cuk, fill = \myblue] (load) {load};
+\node [block, right = of cuk, fill = \myblue] (drivers) {gate drivers};
+\node [block, above = of cuk, fill = \myblue] (sensingoutput) {output voltage sensing};
+\node [block, above = of sensingoutput, fill = \myblue] (sensinginput) {input voltage sensing};
+\node [block, left = of sensinginput, fill = \myblue] (caps) {ultra-capacitors};
+\node [block, above left = of sensinginput, fill = \myblue] (charging) {charging circuitry};
+\node [block, right = of drivers, fill = \mygreen] (PWM) {PWM};
+\node [block, right = of sensingoutput, fill = \mygreen] (ADC) {ADC};
+\node [block, above right = of sensinginput, fill = \myred, align = center] (USB) {laptop; \\ USB};
+\node [block, right = of ADC, fill = \mygreen] (uC) {micro-controller};
+\node [block, right = of USB, fill = \myblue] (UART) {UART};
+%
+\path [line, ultra thick] (USB)	-- node [anchor = south, align = center] {power} (charging);
+\path [line, ultra thick] (charging) to[out = -90, in = 90] node [anchor = east, align = center]
+	{power}	(caps);
+\path [line, ultra thick] (caps) to[out = -90, in = 180] node [anchor = west, align = center]
+	{$v_g$}	(cuk);
+\path [line, ultra thick] (cuk)	--	node [anchor = west, align = center] {$y$} (load); 
+\path [line, ultra thick] (USB)	to[out = -90, in = 150]	node [anchor = west, align = center]
+	{power}	(uC);
+\path [line, ultra thick] (USB)	to[out = -40, in = -140] node [anchor = south, align = center]
+	{\textsf{ref}} (UART);
+\path [line, ultra thick] (UART) to[out = -110, in = 110] node [anchor = west, align = center]
+	{\textsf{ref}} (uC);
+\path [line, ultra thick] (caps) to[out = 0, in = -180]
+	node [anchor = south, align = center, above left = 0cm and -0.25cm]	{$v_g$}	(sensinginput);
+\path [line, ultra thick] (cuk)	to[out = 90, in = -90] node [anchor = west, align = center]
+	{$y$} (sensingoutput);
+\path [line, ultra thick] (uC) to[out = 70, in = -70] node [anchor = west, align = center]
+	{measurements; \\ estimates} (UART);
+\path [line, ultra thick] (uC) to[out = -90, in = 90] node [anchor = west, align = center]
+	{$d$} (PWM);
+\path [line, ultra thick] (UART) to[out = 140, in = 40]	node [anchor = south, align = center]
+	{measurements; \\ estimates} (USB);
+\path [line, ultra thick] (PWM)	-- node [anchor = north, align = center] {switching \\ signal}
+	(drivers);
+\path [line, ultra thick] (drivers)	--	node [anchor = north, align = center] {switching \\ signal}
+	(cuk);
+\path [line, ultra thick] (ADC) -- node [anchor = north, align = center] {measured \\ voltages}
+	(uC);
+\path [line, ultra thick] (sensinginput) to[out = -20, in = 110]
+    node [anchor = south, align = center, above right = 0.75cm and -1.5cm] {$v_g$ \\ (filtered)}
+	(ADC);
+\path [line, ultra thick] (sensingoutput) -- node [anchor = north, align = center]
+    {$y$ \\ (filtered)} (ADC);
+\end{tikzpicture}
+}
+\caption{System overview}
+\label{flow:system_architecture_overview}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

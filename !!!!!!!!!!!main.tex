@@ -1,0 +1,176 @@
+\documentclass[12pt]{article}
+\usepackage[margin=2cm]{geometry}
+\linespread{1.5}
+
+\usepackage{tikz}
+\usetikzlibrary{plotmarks}
+\usepackage{pgfplots}
+\usepackage{soul}
+\usepackage{color}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\numberwithin{equation}{section}
+\usepackage{amssymb}
+\usepackage{xfrac}
+\usepackage{array}
+%\usepackage[framed]{mcode}
+\usepackage[framed]{mcode}
+\usepackage{caption}
+\numberwithin{figure}{section}
+\usepackage{siunitx}
+\usepackage{mathtools}
+\usepackage{float}
+%\usepackage{dcolumn}
+\usepackage[american, arrowmos]{circuitikz}
+\usepackage{textcomp}
+\usetikzlibrary{positioning, backgrounds, shapes, arrows, calc, arrows.meta}
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+\usepackage{comment}
+\usepackage{adjustbox}
+\usepackage{framed}
+\usepackage{pdfpages}
+\usepackage{comment}
+% \usetikzlibrary{external}
+% \tikzexternalize[prefix = tikzfigures/]
+% \tikzexternaldisable
+
+\renewcommand{\vec}[1]{\mathbf{#1}}
+% \renewcommand{\arraystretch}{1.5}
+\setlength{\parindent}{0pt}
+%\newcolumntype{d}[1]{D{.}{.}{#1}}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\newcommand{\minus}{{-}}
+\newcommand{\paren}[1]{\left(#1\right)}
+\newcommand{\squarey}[1]{\left[#1\right]}
+\newcommand{\curly}[1]{\left\{#1\right\}}
+\newcommand{\myunit}[1]{\ \mathsf{#1}}
+\newcommand{\dispdot}[2][-17mu]{\dot{#2\mkern#1}\mkern-#1}% \dispdot[<disp>]{<stuff>}
+\newcommand{\newpar}{~\\~\\}
+
+\renewcommand\thesubsection{\thesection.\alph{subsection}}
+\renewcommand\thesubsubsection{\thesubsection.\roman{subsubsection}}
+
+\newcommand{\myblue}{cyan!20}
+\newcommand{\mygreen}{green!20}
+\newcommand{\myred}{red!20}
+\newcommand{\myorange}{orange!30}
+
+\pgfplotsset{compat=1.9}
+
+\ctikzset{bipoles/length=1cm}
+
+\makeatletter
+\pgfcircdeclarebipole{}{\ctikzvalof{bipoles/vsourcesquare/height}}{vsourcesquare}{\ctikzvalof{bipoles/vsourcesquare/height}}{\ctikzvalof{bipoles/vsourcesquare/width}}{
+	\pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgfstartlinewidth}
+	\pgfpathellipse{\pgfpointorigin}{\pgfpoint{0}{\pgf@circ@res@up}}{\pgfpoint{\pgf@circ@res@left}{0}}
+	\pgfusepath{draw}
+	\pgf@circ@res@up = .5\pgf@circ@res@up
+	\pgfscope
+%		\pgftransformrotate{90}
+		\pgfpathmoveto{\pgfpoint{-1\pgf@circ@res@up}{0cm}}
+		\pgfpathlineto{\pgfpoint{-1\pgf@circ@res@up}{1\pgf@circ@res@up}}
+		\pgfpathlineto{\pgfpoint{0\pgf@circ@res@up}{1\pgf@circ@res@up}}
+		\pgfpathlineto{\pgfpoint{0\pgf@circ@res@up}{-1\pgf@circ@res@up}}
+		\pgfpathlineto{\pgfpoint{1\pgf@circ@res@up}{-1\pgf@circ@res@up}}
+		\pgfpathlineto{\pgfpoint{1\pgf@circ@res@up}{0\pgf@circ@res@up}}
+		\pgfusepath{draw}
+	\endpgfscope
+}
+\makeatother
+
+%\begin{figure}[H]
+%\centering
+%\fbox{\includegraphics[
+%height = 8cm
+%]{Q2.png}}
+%\caption{}
+%\label{fig:Q2}
+%\end{figure}
+
+%tikz block style
+\tikzset{%
+  block/.style    = {draw, thick, rectangle, minimum height = 3em,
+    minimum width = 3em},
+  sum/.style      = {draw, circle, node distance = 2cm}, % Adder
+  input/.style    = {coordinate}, % Input
+  output/.style   = {coordinate} % Output
+}
+%tikz blocks
+\newcommand{\suma}{\Large$+$}
+\newcommand{\inte}{$\displaystyle \int$}
+\newcommand{\derv}{\huge$\frac{d}{dt}$}
+
+\graphicspath{{figures/}}
+
+% for reference:
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{bibliography.bib}
+
+\setcounter{tocdepth}{2}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{titlepage}
+	\centering
+	\vspace{2cm}
+	\includegraphics[width=0.3\textwidth]{figures/unilogo.pdf}\par\vspace{1cm}
+	{\scshape\large Department of Electrical and Electronic Engineering \\  University of Melbourne\par}
+	\vspace{0.5cm}
+	{\scshape\Large Preliminary report\par}
+	\vspace{1cm}
+	{\huge\bfseries PD1: Ultra-capacitor Charge \\ Management System\par}
+	\vspace{4cm}
+	{\large\itshape Liam Van Hees 695313, Mia Ito 692296, Oscar Salt 695724\par}
+	\vfill
+	supervised by\par
+	A/PROF~Peter~Dower
+	\vfill
+% Bottom of the page
+	{\large \today\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{!!!!!!!!!!ExecutiveSummary.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{!!!!!!!!!introduction.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newpage
+%\input{!!!!!!!!overview.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\input{!!!!!!!backgroundtheory.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\input{!!!!!!design_development.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\input{!!!!!hardware.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\input{!!!!programming.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\input{!!!results.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\input{!!discussion.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\input{!conclusion.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{appendix.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+% make bibliography print out all entries
+\nocite{*}
+\printbibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}

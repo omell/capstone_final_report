@@ -1,0 +1,128 @@
+\section{Discussion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Physical Modelling}
+% \hl{TODO}
+% \begin{itemize}
+% \item switching losses
+% \item MOSFET capacitance
+% \end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Control Design}
+% \hl{TODO: recommendations for future projects}
+\subsubsection{Generating estimates of state variables}\label{sec:observing}
+The observability matrix of our system has full rank, implying that there are no unobservable states. This fact by itself is limited in its insight however; another element affecting the accuracy of an observer regime is the condition number of the observability matrix.
+\newpar
+With the component values specified in Table~\ref{tab:cuk_values}:
+\begin{align}
+\texttt{cond(obsv(A, c)) = 5.5831e+13}
+\end{align}
+which is much larger than 1, indicating an ill-conditioned observability matrix. This suggests sub-optimal performance of our observer regime.
+\newpar
+In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$ could be extracted with an observer regime. States $v_{C1}$ and $i_{L1}$ were not able to be estimated to reasonable precision. Simulation data in support of this behaviour is provided in Figures~\ref{fig:estimating} and~\ref{fig:estimating2}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+    \begin{framed}
+    \captionsetup[subfigure]{justification = centering}
+    \centering
+    \begin{subfigure}[b]{0.8\textwidth}
+    \centering\includegraphics[height = 6cm]{figures/estimation/ref_y_pulsetrain.pdf}
+    \caption{Reference train and output voltage response used in generating data of Figures~\ref{fig:estimatingfirst} through~\ref{fig:estimatinglast}}
+    \label{}
+    \end{subfigure}
+    \\[11pt]
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/vC1_vC1.pdf}
+    \caption{$v_{C1}$}
+    \label{fig:estimatingfirst}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/vC2_vC2.pdf}
+    \caption{$v_{C2}$; plots coincide exactly at this scale}
+    \label{}
+    \end{subfigure}
+    \\[11pt]
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/iL1_iL1.pdf}
+    \caption{$i_{L1}$}
+    \label{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/iL2_iL2.pdf}
+    \caption{$i_{L2}$}
+    \label{fig:estimatinglast}
+    \end{subfigure}
+    \end{framed}
+    \caption{}
+    \label{fig:estimating}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+    \begin{framed}
+    \captionsetup[subfigure]{justification = centering}
+    \centering
+    \begin{subfigure}[b]{0.8\textwidth}
+    \centering\includegraphics[height = 6cm]{figures/estimation/ref_y_ramp.pdf}
+    \caption{Reference voltage, intput voltage, and output voltage used in generating data of Figures~\ref{fig:estimating2first} through~\ref{fig:estimating2last}}
+    \label{}
+    \end{subfigure}
+    \\[11pt]
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/vC1_vC1b.pdf}
+    \caption{$v_{C1}$}
+    \label{fig:estimating2first}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/vC2_vC2b.pdf}
+    \caption{$v_{C2}$; plots coincide exactly at this scale}
+    \label{}
+    \end{subfigure}
+    \\[11pt]
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/iL1_iL1b.pdf}
+    \caption{$i_{L1}$}
+    \label{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[height = 6cm]{figures/estimation/iL2_iL2b.pdf}
+    \caption{$i_{L2}$}
+    \label{fig:estimating2last}
+    \end{subfigure}
+    \end{framed}
+    \caption{}
+    \label{fig:estimating2}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The response to poor performance of the observer regime was to disable observer state feedback (achieved by setting the LQR weights for system states ($v_{C1}$, $v_{C2}$, $i_{L1}$, and $i_{L2}$) to 0; weight affecting $x_i$ is the only non-zero entry in weight matrix).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Hardware}
+\subsection{Microcontroller breakout}
+
+\subsection{Controller and ultra-capacitor charging}
+
+\subsection{\'Cuk converter and driving}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Programming}
+\input{!!discussion_Programming.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

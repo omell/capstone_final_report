@@ -1,0 +1,492 @@
+\section{Background theory - physical modelling of a DC-DC converter}
+\subsection{The \'{C}uk converter}
+The DC-DC converter topology chosen was that of the \'{C}uk converter, a form of buck-boost converter that employs 2 inductors and 2 capacitors as the energy storage components.
+\newpar
+For input voltage $v_g$, the output voltage of a \'{C}uk converter is determined according to the (ideal) transfer function
+\begin{align}\label{eqn:cuk_transfer_ideal}
+\frac{v_o}{v_g} = \frac{\minus d}{1 - d}
+\end{align}
+where
+\begin{itemize}
+\item $d$: duty ratio of switching signal applied to gate of MOSFET $M_1$ ($0 \leq d \leq 1$)
+\end{itemize}
+The circuit model of the ideal \'{C}uk converter is provided in Figure~\ref{cir:cuk_ideal}.
+\begin{figure}[H]
+\centering
+\fbox{
+\begin{circuitikz}[scale = 0.75]
+\draw (0,0)
+	to[V<=$v_g$, invert] (0,5)
+	to[L, l=$L_1$] (5,5)
+	to[C, l=$C_1$] (8,5)
+	to[L, l=$L_2$] (11,5)
+	to[C, l_=$C_2$] (11,0) -- (0,0);
+\draw (5,2)
+	node[nmos](nmos1) {}
+	(nmos1.G) node[right = 10mm]{$M_1$}
+	(nmos1.D) to (5,5)
+	(nmos1.S) to (5,0)
+	(nmos1.G) -- ++(0,0) to[vsourcesquare] ++(-2,0) -- ++(0,-2);
+\draw (11,5) -- (14,5)
+	to[R, l_=$R$] (14,0) -- (11,0);
+\draw (14,5) -- (15,5);
+\draw (14,0) -- (15,0);
+\draw
+	node[ocirc] (A)  at (15,5) {}
+	node[ocirc] (B)  at (15,0) {}
+	(A) to[open, v^>=$v_o$] (B);
+\draw (8,5)
+	to[diode] (8,0);
+\draw (14/2,0)
+	node[ground] {};
+\end{circuitikz}
+}
+\caption{Circuit model of the \'Cuk converter}
+\label{cir:cuk_ideal}
+\end{figure}
+The transfer function in Equation~\ref{eqn:cuk_transfer_ideal} suggests that
+\begin{align*}
+v_o \rightarrow \minus\infty \qquad\text{ as }\qquad d \rightarrow 1
+\end{align*}
+Such behaviour is not physically reproducible. The first step in deriving a more accurate model of the behaviour of this converter is to model the parasitic resistances of the energy storage components. For brevity the parasitic resistance of the diode will be introduced at this stage also. These parasitic resistances will be introduced as an equivalent series resistance (ESR) for each component.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Accounting for parasitic resistances}
+Let
+\begin{itemize}
+\item $R_1$ and $R_2$ denote the parasitic resistances of inductors $L_1$ and $L_2$ respectively
+\item $R_3$ and $R_4$ denote the parasitic resistances of capacitors $C_1$ and $C_2$ respectively
+%\item $R_o$ denote the gate-source parasitic resistance of MOSFET M1
+\item $R_D$ denote the `on'-resistance of the diode under forward bias
+\end{itemize}
+then the circuit model may be updated as in Figure~\ref{cir:cuk_parasitic}.
+\begin{figure}[H]
+\centering
+\fbox{
+\begin{circuitikz}[scale = 0.75]
+\draw (0,0)
+	to[V<=$v_g$, invert] (0,5)
+	to[L, l=$L_1$] (3,5)
+	to[R, l=$R_1$] (5,5)
+	to[C, l=$C_1$] (8,5)
+	to[R, l=$R_3$] (10,5)
+	to[L, l=$L_2$] (13,5)
+	to[R, l=$R_2$] (15,5)
+	to[C, l_=$C_2$] (15,2)
+	to[R, l_=$R_4$] (15,0) -- (0,0);
+\draw (5,2)
+	node[nmos](nmos1) {}
+	(nmos1.G) node[right = 10mm]{$M_1$}
+	(nmos1.D) to (5,5)
+	(nmos1.S) to (5,0)
+	(nmos1.G) -- ++(0,0) to[vsourcesquare] ++(-2,0) -- ++(0,-2);
+\draw (15,5) -- (18,5)
+	to[R, l_=$R$] (18,0) -- (15,0);
+\draw (10,5)
+	to[R, l_=$R_D$] (10,5/2)
+	to[V_<=$V_D$] (10,0);
+\draw (18,5) -- (19,5);
+\draw (18,0) -- (19,0);
+\draw
+	node[ocirc] (A)  at (19,5) {}
+	node[ocirc] (B)  at (19,0) {}
+	(A) to[open, v^>=$v_o$] (B);
+\draw (18/2,0)
+	node[ground] {};
+\end{circuitikz}
+}
+\caption{}
+\label{cir:cuk_parasitic}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{State-space modelling: introducing state-space averaging as a technique for generating a linear circuit model}\label{sec:ss_averaging}
+For a DC-DC converter operating in continuous conduction mode\footnote{
+For the \'{C}uk converter, continuous conduction mode is guaranteed for $\frac{(1 - d)^2 R T}{2 d} < L_1$
+} the system may be described by 2 sets of equations, 1 for each switching interval:
+\begin{align}
+0 \leq t < d \cdot T \text{ (`on')}:
+\dot{\boldsymbol{x}}(t) &= \boldsymbol{A}_1 \boldsymbol{x}(t) + \boldsymbol{b}_1 \boldsymbol{u}(t)
+\nonumber
+\\[11pt]
+y_1&= \boldsymbol{c}_1 \boldsymbol{x}(t)\label{eqn:equations_on}
+\\[11pt]
+d \cdot T \leq t < T \text{ (`off')}:
+\dot{\boldsymbol{x}}(t) &= \boldsymbol{A}_2 \boldsymbol{x}(t) + \boldsymbol{b}_2 \boldsymbol{u}(t)
+\nonumber
+\\[11pt]
+y_2&= \boldsymbol{c}_2 \boldsymbol{x}(t)\label{eqn:equations_off}
+\end{align}
+where
+\begin{itemize}
+\item $d$: duty ratio ($0 \leq d \leq 1$)
+\item $T$: period of switching signal applied as input to the DC-DC converter (in our case $T$ is the period of the switching signal applied to the gate of $M_1$)
+\item $\boldsymbol{x}(t)$: vector of state variables
+\item $\boldsymbol{u}(t)$: input vector
+\item $y_{1, \, 2}(t)$: output state in each switching interval (scalar)
+\end{itemize}
+and $\boldsymbol{A}_{1, \, 2}$, $\boldsymbol{b}_{1, \, 2}$, and $\boldsymbol{c}_{1, \, 2}$ are matrices populated according to differential equations describing the system. $y_{1}(t)$ and $y_{2}(t)$ will be assigned to the output voltage $v_o$ in each switching interval and as such will be scalar-valued.
+\newpar
+A representation of the input switching signal is provided in Figure~\ref{fig:switching}.
+\begin{figure}[H]
+\centering
+\fbox{
+\begin{tikzpicture}[scale = 0.8]
+\begin{axis}[
+xlabel = {Time},
+ylabel = {Switching signal state},
+ylabel style = {at = {(-0.2, 0.5)}, rotate = -90},
+xmin = 0, xmax = 2.5,
+ymin = 0, ymax = 1.5,
+xtick = {0, 1, 2},
+xticklabels = {0, $d \cdot T$, $T$},
+ytick = {0, 1},
+yticklabels = {off, on},
+axis x line = bottom,
+axis y line = left]
+\addplot[const plot, black]
+coordinates
+{(0,0) (0,1) (1,1) (1,0) (2,0) (2,1) (2.5,1)};
+\end{axis}
+\end{tikzpicture}
+}
+\caption{}
+\label{fig:switching}
+\end{figure}
+% ~\rule{\textwidth}{0.5pt}
+% ~\\
+% The state variables typically investigated in analysis of DC-DC converters are the inductor currents and (ideal) capacitor voltages\footnote{
+% Inductors obey volt-second balance; capacitors obey amp-second balance
+% }. The circuit updated with labels for these states and their polarities if provided in Figure~\ref{cir:cuk_stateintroduce}.
+The state variables typically investigated in analysis of DC-DC converters are the inductor currents and (ideal) capacitor voltages. The circuit updated with labels for these states and their polarities is provided in Figure~\ref{cir:cuk_stateintroduce}.
+\newpar
+The state vector used in our modelling of the converter is formulated as
+\begin{align*}
+	\begin{bmatrix}
+		v_{C1} \\ v_{C2} \\ i_{L1} \\ i_{L2}
+	\end{bmatrix}
+\end{align*}
+%
+\begin{figure}[H]
+    \centering
+    \fbox{
+    \begin{circuitikz}[scale = 0.75]
+        \draw (0,0)
+	        to[V<=$v_g$, invert] (0,5)
+	        to[L, l=$L_1$, v_>=$v_{L1}$, i^>=$i_{L1}$] (3,5)
+	        to[R, l=$R_1$] (5,5)
+	        to[C, l=$C_1$, v_>=$v_{C1}$, i^>=$i_{C1}$] (8,5)
+	        to[R, l=$R_3$] (10,5)
+	        to[L, l=$L_2$, v_<=$v_{L2}$, i<^=$i_{L2}$] (13,5)
+	        to[R, l=$R_2$] (15,5)
+	        to[C, l_=$C_2$, v^<=$v_{C2}$, i<_=$i_{C2}$] (15,2)
+	        to[R, l_=$R_4$] (15,0) -- (0,0);
+        \draw (5,2)
+	    node[nmos](nmos1) {}
+            % (nmos1.G) node[anchor = east]{G}
+	        (nmos1.G) node[right = 10mm]{$M_1$}
+	        (nmos1.D) to (5,5)
+	        (nmos1.S) to (5,0)
+	        (nmos1.G) -- ++(0,0) to[vsourcesquare] ++(-2,0) -- ++(0,-2);
+        \draw (15,5) -- (18,5)
+	        to[R, l_=$R$] (18,0) -- (15,0);
+        \draw (18,5) -- (19,5);
+        \draw (18,0) -- (19,0);
+        \draw
+	        node[ocirc] (A)  at (19,5) {}
+	        node[ocirc] (B)  at (19,0) {}
+	        (A) to[open, v^>=$v_o$] (B);
+        \draw (10,5)
+	        to[R, l_=$R_D$] (10,5/2)
+	        to[V_<=$V_D$] (10,0);
+        \draw (18/2,0)
+	        node[ground] {};
+    \end{circuitikz}
+    }
+    \caption{}
+    \label{cir:cuk_stateintroduce}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Basic state-space theory, with system output $y(t)$ assigned to output voltage $v_o$:
+% \begin{align*}
+% \dot{\boldsymbol{x}}(t) &= \boldsymbol{A} \boldsymbol{x}(t) + \boldsymbol{b} \boldsymbol{u}(t)
+% \\[11pt]
+% y(t) &= \boldsymbol{c} \boldsymbol{x}(t)
+% \end{align*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TODO further explain state-space averaging
+The technique of state-space averaging may be employed to generate a linear continuous model of the DC-DC converter, and is achieved in taking the following sum:
+\begin{align*}
+\dot{\boldsymbol{x}}(t)
+&= d \squarey{\boldsymbol{A}_1 \boldsymbol{x}(t) + \boldsymbol{b}_1 \boldsymbol{u}(t)}
++ (1 - d) \squarey{\boldsymbol{A}_2 \boldsymbol{x}(t) + \boldsymbol{b}_2 \boldsymbol{u}(t)}
+\\[11pt]
+y(t) &= d \squarey{\boldsymbol{c}_1 \boldsymbol{x}(t)} + (1 - d) \squarey{\boldsymbol{c}_2 \boldsymbol{x}(t)}
+\end{align*}
+% ~\\
+Re-arranging:
+\begin{align*}
+\dot{\boldsymbol{x}}(t)
+&= \squarey{d \boldsymbol{A}_1 + (1 - d) \boldsymbol{A}_2}\boldsymbol{x}(t)
++ \squarey{d \boldsymbol{b}_1 + (1 - d) \boldsymbol{b}_2}\boldsymbol{u}(t)
+\\[11pt]
+y(t) &= \squarey{d\boldsymbol{c}_1 + (1 - d) \boldsymbol{c}_2} \boldsymbol{x}(t)
+\end{align*}
+Note that the duty ratio is considered to be constant over 1 switching cycle in these equations (although it may vary from cycle to cycle).
+% ~\\
+% ~\rule{\textwidth}{0.5pt}
+\newpar
+Assuming a constant duty ratio between switching cycles (i.e. $d(t) = D$):
+\begin{align}
+\dot{\boldsymbol{x}}(t)
+&= \boldsymbol{A} \boldsymbol{x}(t) + \boldsymbol{b} \boldsymbol{u}(t) \nonumber
+\\[11pt]
+y(t) &= \boldsymbol{c} \boldsymbol{x}(t) \label{eqn:averaging}
+\end{align}
+where
+\begin{itemize}
+\item $\boldsymbol{A} = D \boldsymbol{A}_1 + (1 - D) \boldsymbol{A}_2$
+\item $\boldsymbol{b} = D \boldsymbol{b}_1 + (1 - D) \boldsymbol{b}_2$
+\item $\boldsymbol{c} = D \boldsymbol{c}_1 + (1 - D) \boldsymbol{c}_2$
+\end{itemize}
+~\rule{\textwidth}{0.5pt}
+% \clearpage
+According to this equation, a perturbation in the input vector $\boldsymbol{u}(t)$, described by $\boldsymbol{u}(t) = \boldsymbol{U} + \, \hat{\boldsymbol{u}}(t)$, produces a perturbation in the state vector $\boldsymbol{x}(t) = \boldsymbol{X} + \, \hat{\boldsymbol{x}}(t)$ and output $y(t) = Y + \, \hat{y}(t)$, and leads to the following description of the system:
+\begin{align*}
+\dot{\boldsymbol{x}}(t) = \frac{\mathrm{d}}{\mathrm{d} t} \squarey{\boldsymbol{X} + \hat{\boldsymbol{x}}(t)} = \dot{\hat{\boldsymbol{x}}}(t)
+&=
+\boldsymbol{A} \boldsymbol{X} + \boldsymbol{b} \boldsymbol{U} + \boldsymbol{A} \hat{\boldsymbol{x}}(t) + \boldsymbol{b} \hat{\boldsymbol{u}}(t)
+\\[11pt]
+Y + \hat{y}(t) &= \boldsymbol{c} \boldsymbol{X} + \boldsymbol{c} \hat{\boldsymbol{x}}(t)
+\end{align*}
+where
+\begin{itemize}
+\item $\boldsymbol{X}$: vector containing the steady-state values of state vector quantities
+\item $\boldsymbol{U}$: vector containing the steady-state values of input vector quantities
+\item $Y$: steady-state output value
+\item $\hat{\boldsymbol{x}}(t)$: vector containing the perturbation in state vector quantities
+\item $\hat{\boldsymbol{u}}(t)$: vector containing the perturbation in input vector quantities
+\item $\hat{y}(t)$: perturbation in output value
+\end{itemize}
+% ~\rule{\textwidth}{0.5pt}
+\iffalse
+Separating the steady-state part from the time-varying part yields:
+\begin{align*}
+\boldsymbol{A} \boldsymbol{X} + \boldsymbol{b} \boldsymbol{U} &= 0
+\\[11pt]
+Y &= \boldsymbol{c} \boldsymbol{X}
+\end{align*}
+and
+\begin{align*}
+\dot{\hat{\boldsymbol{x}}}(t) &= \boldsymbol{A} \hat{\boldsymbol{x}}(t) + \boldsymbol{b} \hat{\boldsymbol{u}}(t)
+\\[11pt]
+\hat{y}(t) &= \boldsymbol{c} \hat{\boldsymbol{x}}(t)
+\end{align*}
+and the following relationship between steady-state quantities:
+\begin{align*}
+\boldsymbol{X} &= \minus \boldsymbol{A}^{-1} \boldsymbol{b} \boldsymbol{U}
+\\[11pt]
+Y &= \minus \boldsymbol{c} \boldsymbol{A}^{-1} \boldsymbol{b} \boldsymbol{U}
+\end{align*}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \clearpage
+A perturbation in the duty ratio $d(t) = D + \, \hat{d}(t)$ may be considered in addition to the perturbation in input vector. The combined effect of these perturbations produces the following system description:
+\begingroup
+\allowdisplaybreaks
+\begin{align*}
+\dot{\hat{\boldsymbol{x}}}(t)
+= \, &\boldsymbol{A} \boldsymbol{X} + \boldsymbol{b} \boldsymbol{U}
+&&\text{`DC term'}
+\\[11pt]
++ \, &\boldsymbol{A} \hat{\boldsymbol{x}}(t) + \boldsymbol{b} \hat{\boldsymbol{u}}(t)
+&&\text{`input vector perturbation'}
+\\[11pt]
++ \, &\squarey{\paren{\boldsymbol{A}_1 - \boldsymbol{A}_2}\boldsymbol{X} + \paren{\boldsymbol{b}_1 - \boldsymbol{b}_2}\boldsymbol{U}} \hat{d}(t)
+&&\text{`duty ratio perturbation'}
+\\[11pt]
++ \, &\squarey{\paren{\boldsymbol{A}_1 - \boldsymbol{A}_2}\hat{\boldsymbol{x}}(t) + \paren{\boldsymbol{b}_1 - \boldsymbol{b}_2}\hat{\boldsymbol{u}}(t)} \hat{d}(t)
+&&\text{`non-linear second-order term'}
+\\[11pt]
+Y + \hat{y} = \, &\boldsymbol{c} \boldsymbol{X}
+&&\text{`DC term'}
+\\[11pt]
++ \, &\boldsymbol{c} \hat{\boldsymbol{x}}(t)
+&&\text{`AC term'}
+\\[11pt]
++ \, &\paren{\boldsymbol{c}_1 - \boldsymbol{c}_2} \boldsymbol{X} \hat{d}(t)
+&&\text{`AC term'}
+\\[11pt]
++ \, &\paren{\boldsymbol{c}_1 - \boldsymbol{c}_2} \hat{\boldsymbol{x}}(t) \hat{d}(t)
+&&\text{`non-linear term'}
+\end{align*}
+\endgroup
+The naming of these terms comes from \cite{cuk} (page 528).
+% ~\\
+% ~\rule{\textwidth}{0.5pt}
+\newpar
+This system may be linearised by making the following approximation (sometimes referred to as the `small-ripple approximation'):
+\begin{align*}
+&\hat{\boldsymbol{u}}(t) \ll \boldsymbol{U} &&d(t) \ll D &&\hat{\boldsymbol{x}}(t) \ll \boldsymbol{X}
+\end{align*}
+Under this approximation, the `non-linear second-order term' as appears in the expression for $\dot{\hat{\boldsymbol{x}}}(t)$ and the 'non-linear term' as appears in the expression for $Y + \hat{y}$ disappear, as they contain the multiplication of 2 small quantities (perturbations).
+% ~\\
+% ~\rule{\textwidth}{0.5pt}
+\newpar
+The resulting linear model:
+\begin{align}
+\boldsymbol{X} &= \minus \boldsymbol{A}^{-1} \boldsymbol{b} \boldsymbol{U},
+\nonumber
+\\[11pt]
+Y &= \minus \boldsymbol{c} \boldsymbol{A}^{-1} \boldsymbol{b} \boldsymbol{U},
+\label{eqn:modelY}
+\end{align}
+and
+\begin{align*}
+\dot{\hat{\boldsymbol{x}}}(t)
+&= \boldsymbol{A} \hat{\boldsymbol{x}}(t) + \boldsymbol{b} \hat{\boldsymbol{u}}(t)
++ \squarey{\paren{\boldsymbol{A}_1 - \boldsymbol{A}_2}\boldsymbol{X} + \paren{\boldsymbol{b}_1 - \boldsymbol{b}_2}\boldsymbol{U}} \hat{d}(t),
+\\[11pt]
+\hat{y}(t) &= \boldsymbol{c} \hat{\boldsymbol{x}}(t) + \paren{\boldsymbol{c}_1 - \boldsymbol{c}_2} \boldsymbol{X} \hat{d}(t).
+\end{align*}
+A useful transfer function to extract at this point is that between duty ratio and state vector perturbations:
+\begin{align}
+\boldsymbol{b}_d = \frac{\dot{\hat{\boldsymbol{x}}}(t)}{\hat{d}(t)} = \paren{\boldsymbol{A}_1 - \boldsymbol{A}_2}\boldsymbol{X} + \paren{\boldsymbol{b}_1 - \boldsymbol{b}_2}\boldsymbol{U}
+\label{eqn:bD}
+\end{align}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Circuit analysis: from circuit laws to $\boldsymbol{A}$, $\boldsymbol{b}$, and $\boldsymbol{c}$ matrices}\label{sec:circuitanalysis}
+Having separated the steady-state from the transient components, analysis may be performed on the perturbed system. The true states are extracted by simply taking the sum of steady-state and transient.
+\begin{align*}
+\text{e.g.} \qquad \boldsymbol{x}(t) = \boldsymbol{X} + \hat{\boldsymbol{x}}(t)
+\end{align*}
+Note that for the remainder of (this) Section~\ref{sec:circuitanalysis} the quantities investigated are the time-varying perturbations despite not being labelled as such by $(\quad\hat{}\quad)$.
+\newpar
+Note also that $R_o$ denotes the MOSFET drain-source ESR.
+\newpar
+Full derivation of relations between state variables reproduced in Appendix~\ref{apx:circuit_analysis}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{$0 < t \leq d \cdot T$}
+Per Equation~(\ref{eqn:equations_on}), the on-period matricies $\boldsymbol{A}_1$, $\boldsymbol{b}_1$, and $\boldsymbol{c}_1$ are populated as
+\begin{align*}
+\begin{bmatrix}
+\dispdot{v_{C1}} \\ \dispdot{v_{C2}} \\ \dispdot{i_{L1}} \\ \dispdot{i_{L2}}
+\end{bmatrix}
+&=
+\begin{bmatrix}
+0 & 0 & 0 & \minus\frac{1}{C_1}\\
+0 & \minus\frac{1}{C_2(R + R_4)} & 0 & \frac{R}{C_2(R + R_4)}\\
+0 & 0 & \minus\frac{R_1 + R_o}{L_1} & \minus\frac{R_o}{L_1}\\
+\minus\frac{1}{L_2} & \minus\frac{R}{L_2(R + R_4)} & \minus\frac{R_o}{L_2} & \frac{R_2 + R_3 - R_o - \frac{R \cdot R_4}{R + R_4}}{L_2}
+\end{bmatrix}
+\begin{bmatrix}
+v_{C1} \\ v_{C2} \\ i_{L1} \\ i_{L2}
+\end{bmatrix}
++
+\begin{bmatrix}
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+\frac{1}{L_1} & 0 & 0 & 0\\
+0 & 0 & 0 & 0
+\end{bmatrix}
+\begin{bmatrix}
+v_g \\ V_D \\ 0 \\ 0
+\end{bmatrix}
+\\[11pt]
+y &=
+\begin{bmatrix}
+0 & \frac{R}{R + R_4} & 0 & \frac{R \cdot R_4}{R + R_4}
+\end{bmatrix}
+\begin{bmatrix}
+v_{C1} \\ v_{C2} \\ i_{L1} \\ i_{L2}
+\end{bmatrix}
+\end{align*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{$d \cdot T < t \leq T$}
+State space description:
+\begin{align*}
+\begin{bmatrix}
+\dispdot{v_{C1}} \\ \dispdot{v_{C2}} \\ \dispdot{i_{L1}} \\ \dispdot{i_{L2}}
+\end{bmatrix}
+& =
+\begin{bmatrix}
+0 & 0 & \frac{1}{C_1} & 0\\
+0 & \minus\frac{1}{C_2(R + R_4)} & 0 & \frac{R}{C_2(R + R_4)}\\
+\minus\frac{1}{L_1} & 0 & \minus\frac{R_1 + R_3 + R_D}{L_1} & \minus\frac{R_D}{L_1}\\
+0 & \minus\frac{R}{L_2(R + R_4)} & \minus\frac{R_D}{L_2} & \frac{R_2 - R_D - \frac{R \cdot R_4}{R + R_4}}{L_2}
+\end{bmatrix}
+\begin{bmatrix}
+v_{C1} \\ v_{C2} \\ i_{L1} \\ i_{L2}
+\end{bmatrix}
++
+\begin{bmatrix}
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+\frac{1}{L_1} & {-}\frac{1}{L_1} & 0 & 0\\
+0 & {-}\frac{1}{L_2} & 0 & 0
+\end{bmatrix}
+\begin{bmatrix}
+v_g \\ V_D \\ 0 \\ 0
+\end{bmatrix}
+\\[11pt]
+y &=
+\begin{bmatrix}
+0 & \frac{R}{R + R_4} & 0 & \frac{R \cdot R_4}{R + R_4}
+\end{bmatrix}
+\begin{bmatrix}
+v_{C1} \\ v_{C2} \\ i_{L1} \\ i_{L2}
+\end{bmatrix}
+\end{align*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{State-space averaging: generating a linear model}
+Employing state-space averaging through Equation~(\ref{eqn:averaging}):
+\begin{align}
+\boldsymbol{A} &= D \boldsymbol{A}_1 + (1 - D) \boldsymbol{A}_2
+\nonumber
+\\[11pt]
+&= \begin{bmatrix}
+0 & 0 & \frac{1 - D}{C_1} & \minus\frac{D}{C_1}\\
+0 & \minus\frac{1}{C_2(R + R_4)} & 0 & \frac{R}{C_2(R + R_4)}\\
+\frac{D - 1}{L_1} & 0 & \minus\frac{R_1 + R_o D + (R_3 + R_D)(1 - D)}{L_1} & \frac{R_D (D - 1) - R_o D}{L_1}\\
+\minus\frac{D}{L_2} & \minus\frac{R}{L_2(R + R_4)} & \frac{R_D (D - 1) - R_o D}{L_2} & \frac{R_2 + R_3 D - R_o D + R_D (D - 1) - \frac{R \cdot R_4}{R + R_4}}{L_2}
+\end{bmatrix}
+\label{eqn:A_avg}
+\\[11pt]
+\boldsymbol{b} &= D \boldsymbol{b}_1 + (1 - D) \boldsymbol{b}_2
+\nonumber
+\\[11pt]
+&= \begin{bmatrix}
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+\frac{1}{L_1} & \frac{D - 1}{L_1} & 0 & 0\\
+0 & \frac{D - 1}{L_2} & 0 & 0
+\end{bmatrix}
+\\[11pt]
+\boldsymbol{c} &= D \boldsymbol{c}_1 + (1 - D) \boldsymbol{c}_2
+\nonumber
+\\[11pt]
+&=
+\begin{bmatrix}
+0 & \frac{R}{R + R_4} & 0 & \frac{R \cdot R_4}{R + R_4}
+\end{bmatrix}
+\label{eqn:c_avg}
+\end{align}
+%~\\
+%~\rule{\textwidth}{0.5pt}
+%~\\
+%Note that now the output voltage is given by
+%\begin{align*}
+%v_o &= [0 \quad \frac{R}{R + R4} \quad 0 \quad \frac{R \cdot R4}{R + R4}] \cdot
+%\begin{bmatrix}
+%v_{C1} \\ v_{C2} \\ i_{L1} \\ i_{L2}
+%\end{bmatrix}
+%&&\paren{y = \boldsymbol{c} \cdot \boldsymbol{x}}
+%\end{align*}
+%At steady-state:
+%\begin{align*}
+%\boldsymbol{X} =
+%\begin{bmatrix}
+%V_{C1} \\ V_{C2} \\ I_{L1} \\ I_{L2}
+%\end{bmatrix}
+%= \minus \boldsymbol{A}^{-1} \cdot \boldsymbol{b} \cdot \boldsymbol{U}
+%\end{align*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Population of the 3 matricies of Equations~(\ref{eqn:A_avg}) through~(\ref{eqn:c_avg}), along with $\boldsymbol{b}_d$ (of Equation~(\ref{eqn:bD})) completes the modelling of the \'{C}uk converter through the method of state-space averaging.

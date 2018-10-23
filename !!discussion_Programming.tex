@@ -1,0 +1,73 @@
+For our controller regime, it is critical that the updated signal be computed before the next ISR being triggered. Reducing the number of instructions results in faster execution time. But also the execution time can be reduced depending on data types used and structure of the code. Extensive code optimisation was undertaken to get the MCU running at the required speed. 
+
+\subsubsection{Exploring different data type}
+\textbf{Double}\\
+Initially the controller only included integral action and state observer. All the variables were declared as double, as oppose to float. This is because type double is represented with 64 bits providing double the precision. The MCU has 64 kilo bytes memory, which is plentiful for storing all the matrices in double data type. 
+Matrix operations were done by computing each element of result matrix. The control loop was run in main infinitely and the frequency was measure by toggling LEDs. It was measured to be roughly 4 kHz. \\
+
+\textbf{Fractional data type}\\
+It was then discovered that Microship has own library for digital processors. This library includes matrix operations, such as \texttt{MatrixMultiply}. Most of functions uses fractional arithmetic. Fractional data type is defined as:\\
+\texttt{\#ifndef fractional}\\
+    \texttt{typedef int fractional;}\\
+\texttt{\#endif}
+
+It is represented with 1 sign and 15 fractional bits, ranging between -1 and ($1-2^{-15}$). Any variables declared as double or float can be converte dto fractional type using \texttt{Float2Fract} and vice versa, using \texttt{Fratc2Float}. 
+
+Those functions were tested. When DSP functions were called, the variables were converted to fractional then converted back to float. The frequency was measured in the same and was 2.5kHz. 
+
+After some investigation, it was found that the conversion between the data type is a very expensive operation, especially \texttt{Float2Fract} as it involves division. These two functions were then further investigated. Its execution time was tested by toggling LEDs and the results can be found in Table \ref{tab:conversion}. Note that Number of cycles to toggle LED is not taken into account. 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|p{4cm} | c | c|}
+\hline
+Function    & Frequency & Numer of cycles\\ \hline \hline
+Toggling    & 7.5MHz    & 8\\ \hline
+Fract2Float & 51kHz     & 1175\\ \hline
+Float2Fract & 17.8kHz   & 3370\\ \hline
+\end{tabular}
+\caption{Convertion time}
+\label{tab:conversion}
+\end{table}
+
+This demonstrated that the conversion must be avoided as much as possible. Since the matrices for observer are constant, they do not need to be converted every time, it should be converted once at the beginning. Also output form of ADC can be set to either integer or fractional. It was changed to fractional. This removed most of conversion in a loop. This code was tested in the same way and frequency was 4.2kHz. After some testing it was discovered that one of subtraction in fractional data type was taking 100us to compute.
+
+Code was rewritten to avoid the subtraction. It now requires more conversion in a loop, however the frequency was improved to roughly 6.5kHz.\\
+
+These functions were then further investigated. In the source file, it was discovered that the scaling factors of $2^{15}$ and $2^{-15}$ are computed. By defining these constant, this extra computation can be eliminated. So, own conversion functions were written, \texttt{myFratc2Float} and \texttt{myFloat2Fract}. The computational time of these functions was tested in the same way and the result can be found in Table \ref{tab:conversion2}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|p{4cm} | c | p{4cm} | c |}
+\hline
+Function    & Frequency & Function       & Frequency \\ \hline \hline
+Fract2Float & 51kHz     & myFract2Float  & 82.7kHz\\ \hline
+Float2Fract & 17.8kHz   & myFloat2Fract  & 24.3kHz\\ \hline
+\end{tabular}
+\caption{Convertion time comparison}
+\label{tab:conversion2}
+\end{table}
+
+Slight improvement can be seen and the same control loop with updated conversion functions runs at 7kHz.
+
+Implementing state feedback regime replaces four of \texttt{Fratc2Float} with one matrix multiplication and improves controller performance. It now runs at 6.7kHz. A loop is slower to execute however state feedback regime was included in the final design for better performance. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{XC16 compilier optimization}
+Code optimization was begun by exploring function call. When a function is called, function stack grows. The longer the stack gets, the longer to finish running a code. Function call overhead was tested. First method is LED toggled in main and second is the same but calls a function. The result is provided in Table \ref{tab:stack}. As expected, calling a function required extra time (12 cycles). This suggests that the number of function calls should be minimised. 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|p{4cm} | c | c|}
+\hline
+Function        & Frequency & Numer of cycles\\ \hline \hline
+Main            & 7.5MHz    & 8\\ \hline
+Function call   & 3kHz      & 20\\ \hline
+\end{tabular}
+\caption{Function call time}
+\label{tab:stack}
+\end{table}
+
+Later it was found out that compiler has built in optimisation, which we can enable and select level of optimization between 0 and 3. With full optimization, compiler automatically changes the functions to \texttt{inline} function. Inline function makes the execution faster because it eliminates the function call overheads. Fast floating point math operation was also enabled. The controller on its own now is able to run at 10kHz. However, control loop must be able to run faster than 10kHz to meet the system requirement as ISR and UART communication take time. Further oprimization is required.

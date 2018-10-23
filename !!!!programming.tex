@@ -1,0 +1,101 @@
+\section{Controller Implementation}
+As discussed in Section XXXX, the controller takes two inputs, the voltage across the ultra-capacitors and the voltage at the load and computes new control signal. This section outlines how the controller was implemented digitally on the microcontroller. 
+
+\subsection{Controller Architecture}
+The controller implemented includes integral action and the Luenberger observer. However only the integral action was used to compute the control signal. The flowchart of the control loop is provided in Figure~\ref{flow:timerISR}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tikzstyle{decision} = [diamond, draw, fill=\myblue, 
+    text width=4.5em, text badly centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=\myblue, 
+    text width=15em, text badly centered, rounded corners, minimum height=4em]
+\begin{figure}[H]
+    \centering
+    \fbox{
+    \begin{tikzpicture}[node distance = 2.5cm]
+    \node [block] (1) {Timer interrupt occurs};
+    \node [block, below of = 1] (1b) {Update the duty cycle that is being sent to the converter};
+    \node [block, below of = 1b] (3) {Take measurements of voltage across ultra-capacitors and load voltages};
+    \node [block, below of = 3] (3b) {Calculate new duty cycle based on measurements and estimates};
+    \node [block, below of = 3b] (3c) {Make new estimates of other circuit variables};
+    \node [block, below of = 3c] (4) {Return to main and wait};
+    % label
+    \node [rectangle, draw, fill = white, text width=15em, text centered, minimum height = 4em, above of = 1] (-1) {interrupt-based control regime\\operates at $4 \ \mathsf{kHz}$ (triggers every $250 \ \mathsf{\mu s}$)};
+    % edges
+    \path [line, ultra thick] (1) -- (1b);
+    \path [line, ultra thick] (1b) -- (3);
+    \path [line, ultra thick] (3) -- (3b);
+    \path [line, ultra thick] (3b) -- (3c);
+    \path [line, ultra thick] (3c) -- (4);
+    \path [line, ultra thick] (4) -- ($(4) + (4,0)$) -- ($(1) + (4,0)$) -- (1);
+    \end{tikzpicture}
+    }
+    \caption{Controller flowchart}
+    \label{flow:timerISR}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+Timer interrupt was used to run a control loop at exactly 4kHz as timer guarantees that this loop gets executed at the exact frequency every time. 
+
+When the timer interrupt occurs, it triggers ADC to take samples at the ultra-capacitors and at the output, as well as it calls timer Interrupt Service Routine (ISR). In ISR, it updates the duty cycle, which is calculated from the previous sampling interval. ADC takes some time to convert the data sampled, once the conversion is complete, a new duty cycle is computed using integral action. The estimates of circuit variables are then calculated using state feedback regime. When all the computation is complete, it returns to main. 
+
+The execution time of this loop was tested by toggling LEDs, which was found to be roughly 4.2kHz. For the microcontroller to be able to handle other tasks, the frequency of this control loop was set to 4kHz. 
+
+\subsection{Computation of control signal}
+Forward Euler method was implemented as discussed in Section \ref{sec:disc}. It takes the load voltage from the previous and current time-step to update the control signal. Its transfer function is given by:
+\[
+    H(z) = \frac{T_s}{z-1}
+\]
+The difference equation of this transfer function is given by:
+\[
+    y[k] - y[k-1] = T_s x[k] \: \Longrightarrow \: y[k] = y[k-1] + T_s x[k]
+\]
+\hl{where $y[k]$ is the control signal and $x[k]$ is the error, $k$ is the time step and $T_s$ is the sampling interval.}
+
+This control signal is then get multiplied by the integral action determined by LRQ, discussed in Section XXX.
+
+Anti-windup was implemented \hl{to avoid saturation}. After a new control signal is calculated, the magnitude of the calculated signal was checked. When the signal is too large or too small, it gets clipped to the maximum, 80\% or the minimum of 0\% and the excess is stored as \lq anti-windup\lq. When there is non-zero \lq anti-windup\lq from previous sampling period, this is subtracted from the control signal. 
+
+\subsection{PWM as control signal}
+The controller calculates the duty cycle of PWM signal that is to be sent to the converter. The frequency of the duty cycle is set to 100kHz this is because \hl{XXX}. 
+
+The duty cycle of PWM is controlled by PDC1 register. It is determined by the formula\cite{picPWM}:
+\[
+    PDC1 = \left( \frac{ACLK\times 8\times \text{Desired duty cycle in second}}{Prescalar (PCLKDIV)} \right)
+\]
+where:\\
+$ACLKL$ is the frequency of Auxiliary clock, which is set to 60MHz\\
+$PCLKDIV$ is input clock pre-scalar and is set to 1 providing 1:1 ratio \\
+
+
+MAYBE WORTH TALKING ABOUT HOW INTEGRAL ACTION IS IMPLEMENTED? 
+
+\begin{comment}
+    \subsection{System clock and Timer}
+    dsPIC33E has internal clock which runs at 7.3728MHz. Built-in Phase Lock Loop (PLL) was used to increase the frequency of system clock. The clock was configured to the fastest frequency of 120MHz. 
+    
+    Timer 2 was configured as ADC triggering is available on TMR2. Timer count register gets incremented every rising edge of timer input clock. It is configured to take the internal clock running at 60MHz as timer source. The period of timer interrupt is controlled by PR2 (16bit) register. In order to trigger the interrupt at 10kHz, PR2 is set to:
+    \begin{align*}
+        PR2 
+        & = \frac{F_{CY}}{PCLKDIV \times f_{desired}} \\
+        & =  \frac{60MHz}{1 \times 10kHz} \\
+        & = 6000 \text{ instruction cycles}
+    \end{align*}
+    where:
+    $F_{CY}$ is the instruction clock cycle, which is half of system clock i.e. 60MHz\\
+    $PCLKDIV$ is the input pre-scalar and is set to 1 providing 1:1 ratio.
+        
+    
+    \subsection{ADC}
+    As discussed in ADC section, two dedicated cores are used to measure the voltage at output and input at the same time. The conversion time of ADC is given by the formula \cite{picADC}:
+    \begin{align*}
+        T_{conversion} 
+        & = 8 \times T_{coresrc} + ( resolution + 2.5 ) \times T_{adcore}\\
+        & = 8 \cdot \frac{1}{60MHz} + (12 + 2.5) \frac{2}{60MHz}\\
+        & = 620 \mu \text{ seconds}
+    \end{align*}
+       
+    It is expected to take 620 $\mu$ seconds. When the conversion is complete, MCU sets Data Ready Status bit HIGH. These bits were checked in main loop to determine whether conversion results are ready. 
+\end{comment}
+
+
