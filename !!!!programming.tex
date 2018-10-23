@@ -42,7 +42,7 @@ When the timer interrupt occurs, it triggers ADC to take samples at the ultra-ca
 The execution time of this loop was tested by toggling LEDs, which was found to be roughly 4.2kHz. For the microcontroller to be able to handle other tasks, the frequency of this control loop was set to 4kHz. 
 
 \subsection{Computation of control signal}
-Forward Euler method was implemented as discussed in Section \ref{sec:disc}. It takes the load voltage from the previous and current time-step to update the control signal. Its transfer function is given by:
+The control signal is computed based on integral action and forward Euler method was implemented as discussed in Section \ref{sec:disc}. It takes the load voltage from the previous and current time-step to update the control signal. Its transfer function is given by:
 \[
     H(z) = \frac{T_s}{z-1}
 \]
