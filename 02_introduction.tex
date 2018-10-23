@@ -33,7 +33,7 @@ While battery remains at approximately constant voltage until they are depleted,
 \subsubsection{An introduction to DC-DC converters}
 Switched-mode DC-DC converters provide a method for converting a DC input voltage to a DC output voltage of greater or lesser magnitude by the use of 3 fundamental components: a switch; a diode; and an energy storage component. This energy storage component may achieve its function through storage in magnetic field (i.e. inductors) or through storage in electric field (i.e. capacitors). MOSFETs are typically used to achieve the switching behaviour.
 \newpar
-A sub-class of DC-DC converters are those that can produce an output voltage that is either greater or lesser in magnitude than the input voltage. Such converters are termed 'buck-boost' converters. The nature of the switching signal applied to the buck-boost converter determines the mode of operation and is typically of pulse-width modulation (PWM) form. For a typical converter, a PWM signal that is on for a shorter proportion of time than it is off produces buck behaviour and a PWM signal that is on for a longer proportion of time than it is off produces boost behaviour.
+A sub-class of DC-DC converters are those that can produce an output voltage that is either greater (termed `boost' behaviour) or lesser (termed `buck' behaviour) in magnitude than the input voltage. Such converters are termed `buck-boost' converters. The nature of the switching signal applied to the buck-boost converter determines the mode of operation and is typically of pulse-width modulation (PWM) form. For a typical converter, a PWM signal that is on for a shorter proportion of time than it is off produces buck behaviour and a PWM signal that is on for a longer proportion of time than it is off produces boost behaviour.
 \newpar
 Buck-boost converters are favoured for their very high efficiency and simplicity of implementation. They exist nearly everywhere where an output DC voltage of greater or lesser magnitude than a DC input voltage is required to be generated.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,6 +58,7 @@ physical characteristics: $\sim 0.3 \myunit{kg}$; $\sim 0.0006 \myunit{m}^3$
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{comment}
 \subsection{Project Aim}
 \begin{itemize}
     \item Ultra-capacitor charge and discharge characteristics must be well described
@@ -67,6 +68,7 @@ physical characteristics: $\sim 0.3 \myunit{kg}$; $\sim 0.0006 \myunit{m}^3$
     \item control loop must be robust
     \item entire system must be charged/powered, and communicate through USB
 \end{itemize}
+\end{comment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

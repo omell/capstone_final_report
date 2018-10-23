@@ -9,7 +9,10 @@
   input/.style    = {coordinate}, % Input
   output/.style   = {coordinate} % Output
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Introduction}
 Our system description works on the basis of a model perturbed from steady-state.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Open-loop: a model to estimate time-varying perturbations}
 The block diagram for our open-loop perturbed system is provided in Figure~\ref{block:openloop}.
 Thick lines denote vector quantities.
@@ -558,22 +561,10 @@ At integer time step $k$:
     \end{itemize}
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\iffalse
-\subsubsection{Next, the disturbance filtering system $\boldsymbol{\delta}(t)$}
-In continuous time
-\begin{align*}
-\boldsymbol{\dot{\delta}}(t) = \boldsymbol{A}_\gamma^\intercal \boldsymbol{\delta}(t) + \boldsymbol{c}_\gamma^\intercal \hat{y}(t)
-\end{align*}
-In discrete time
-\begin{align*}
-\boldsymbol{\delta}[k + 1] = \overline{\boldsymbol{A}_\gamma^\intercal}\boldsymbol{\delta}[k] + \overline{\boldsymbol{c}_\gamma^\intercal} \hat{y}[k]
-\end{align*}
-where
-\begin{align*}
-\overline{\boldsymbol{A}_\gamma^\intercal} &= \exp{\squarey{\boldsymbol{A}_\gamma^\intercal T_s}}
-\\[11pt]
-\overline{\boldsymbol{c}_\gamma^\intercal} &= \boldsymbol{c}_\gamma^\intercal
-\end{align*}
-\fi
+\subsubsection{Physical realisation of our control loop}\label{sec:hardware_for_control}
+The basic modules required for hardware implementation of our control loop will be introduced presently.
+\paragraph{Measuring $v_g(t)$ and $y(t)$: op-amp sensing circuitry}
+\paragraph{Writing the control signal to the DC-DC converter: achieving PWM functionality in hardware}
+\paragraph{Iterating the control loop: using a microcontroller to process measurements and to calculate the control signals}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

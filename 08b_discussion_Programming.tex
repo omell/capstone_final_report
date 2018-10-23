@@ -1,6 +1,9 @@
 For our controller regime, it is critical that the updated signal be computed before the next ISR being triggered. Reducing the number of instructions results in faster execution time. But also the execution time can be reduced depending on data types used and structure of the code. Extensive code optimisation was undertaken to get the MCU running at the required speed. 
 
 \subsubsection{Exploring different data type}
+
+
+
 \textbf{Double}\\
 Initially the controller only included integral action and state observer. All the variables were declared as double, as oppose to float. This is because type double is represented with 64 bits providing double the precision. The MCU has 64 kilo bytes memory, which is plentiful for storing all the matrices in double data type. 
 Matrix operations were done by computing each element of result matrix. The control loop was run in main infinitely and the frequency was measure by toggling LEDs. It was measured to be roughly 4 kHz. \\
