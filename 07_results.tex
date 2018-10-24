@@ -227,9 +227,16 @@ Worst case settling time was found to be $\approx 10 \ \mathsf{ms}$ and was prod
 \subsubsection{Open-loop - mapping duty ratio to output voltage}
 \begin{figure}[H]
 \centering
-\fbox{\includegraphics[height = 0.4\textheight]{converter_openloop.pdf}}
+\fbox{\includegraphics[height = 0.35\textheight]{converter_openloop.pdf}}
 \caption{}
 \label{fig:steps}
+\end{figure}
+Purpose of test: to compare hardware result Figure~\ref{fig:steps} with theoretical Figure~\ref{fig:out_parasitic}.
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[height = 0.35\textheight]{tfout_parasitic.pdf}}
+\caption{}
+\label{fig:out_parasitic}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Testing operating region limits}
@@ -257,7 +264,10 @@ Under these conditions the $100 \ \mathsf{\Omega}$ resistor dissipated $4 \ \mat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Controller}
-Collection of data to present performance of control regime in hardware is ongoing. Results are not in a state to present in this report at this time.
+% Collection of data to present performance of control regime in hardware is ongoing. Results are not in a state to present in this report at this time.
+
+\hl{10 08 scope 2 and talk about overshoor/ settling time? and 10 05 voltage ripples }
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

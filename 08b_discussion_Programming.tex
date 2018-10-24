@@ -1,20 +1,15 @@
 For our controller regime, it is critical that the updated signal be computed before the next ISR being triggered. Reducing the number of instructions results in faster execution time. But also the execution time can be reduced depending on data types used and structure of the code. Extensive code optimisation was undertaken to get the MCU running at the required speed. 
 
 \subsubsection{Exploring different data type}
-
-
+The execution time of MCU is heavily dependent on the data type. \hl{WRITE INTRO - briefly talk about fixed point vs floating point}
 
 \textbf{Double}\\
-Initially the controller only included integral action and state observer. All the variables were declared as double, as oppose to float. This is because type double is represented with 64 bits providing double the precision. The MCU has 64 kilo bytes memory, which is plentiful for storing all the matrices in double data type. 
+All the variables were declared as double, as oppose to float. This is because type double is represented with 64 bits providing double the precision. The MCU has 64 kilo bytes memory, which is plentiful for storing all the matrices in double data type. 
 Matrix operations were done by computing each element of result matrix. The control loop was run in main infinitely and the frequency was measure by toggling LEDs. It was measured to be roughly 4 kHz. \\
+Later it was discovered that while type float provides more precision, the execution time is much longer compared to using double. Also running integral action on its own does not take long time and computing observer is computationally expensive as it involves matrix operations. \\
 
 \textbf{Fractional data type}\\
-It was then discovered that Microship has own library for digital processors. This library includes matrix operations, such as \texttt{MatrixMultiply}. Most of functions uses fractional arithmetic. Fractional data type is defined as:\\
-\texttt{\#ifndef fractional}\\
-    \texttt{typedef int fractional;}\\
-\texttt{\#endif}
-
-It is represented with 1 sign and 15 fractional bits, ranging between -1 and ($1-2^{-15}$). Any variables declared as double or float can be converte dto fractional type using \texttt{Float2Fract} and vice versa, using \texttt{Fratc2Float}. 
+It was then discovered that Microship has own library for digital processing. This library includes matrix operations, such as \texttt{MatrixMultiply}. Most of functions uses fractional arithmetic. Fractional data type is is represented with 1 sign and 15 fractional bits, ranging between -1 and ($1-2^{-15}$). It is a fixed point arithmetic. Any variables declared as double or float can be converted to fractional type using \texttt{Float2Fract} and vice versa, using \texttt{Fratc2Float} after the variables are scaled down. 
 
 Those functions were tested. When DSP functions were called, the variables were converted to fractional then converted back to float. The frequency was measured in the same and was 2.5kHz. 
 
@@ -53,13 +48,11 @@ Float2Fract & 17.8kHz   & myFloat2Fract  & 24.3kHz\\ \hline
 
 Slight improvement can be seen and the same control loop with updated conversion functions runs at 7kHz.
 
-Implementing state feedback regime replaces four of \texttt{Fratc2Float} with one matrix multiplication and improves controller performance. It now runs at 6.7kHz. A loop is slower to execute however state feedback regime was included in the final design for better performance. 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsubsection{XC16 compilier optimization}
-Code optimization was begun by exploring function call. When a function is called, function stack grows. The longer the stack gets, the longer to finish running a code. Function call overhead was tested. First method is LED toggled in main and second is the same but calls a function. The result is provided in Table \ref{tab:stack}. As expected, calling a function required extra time (12 cycles). This suggests that the number of function calls should be minimised. 
+Code optimization was begun by exploring function call. When a function is called, function stack grows. The longer the stack gets, the longer to finish running a code. Function call overhead was tested. First method is LED toggled in main and second is the same but calls a function. The result is provided in Table \ref{tab:stack}. As expected, calling a function required extra time (12 instruction cycles). This suggests that the number of function calls should be minimised. 
 
 \begin{table}[h]
 \centering
@@ -73,4 +66,4 @@ Function call   & 3kHz      & 20\\ \hline
 \label{tab:stack}
 \end{table}
 
-Later it was found out that compiler has built in optimisation, which we can enable and select level of optimization between 0 and 3. With full optimization, compiler automatically changes the functions to \texttt{inline} function. Inline function makes the execution faster because it eliminates the function call overheads. Fast floating point math operation was also enabled. The controller on its own now is able to run at 10kHz. However, control loop must be able to run faster than 10kHz to meet the system requirement as ISR and UART communication take time. Further oprimization is required.
+Later it was found out that compiler has built in optimisation, which we can enable and select level of optimization between 0 and 3. With full optimization, compiler automatically changes the functions to \texttt{inline} function. Inline function makes the execution faster because it eliminates the function call overheads. Fast floating point math operation was also enabled. WIth these setting the execution time of the controller was minimized. 

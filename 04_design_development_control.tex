@@ -10,12 +10,26 @@
   output/.style   = {coordinate} % Output
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Introduction}
-Our system description works on the basis of a model perturbed from steady-state.
+\paragraph{Introduction}
+~\\
+Our system description works on the basis of a model perturbed from steady-state. The operating point that the model is linearised about is defined by a steady-state duty ratio $D$, steady-state input vector $U$ (which contains the steady-state values for the converter circuit input voltage $v_g$ and diode voltage $V_D$), and the component values $L_1$, $L_2$, $C_1$, $C_2$, $R_1$, $R_2$, $R_3$, $R_4$, $R_o$, $R_D$, and $R$.
+\newpar
+The steady-state values defining the operating point as used in the controller as implemented in the product are provided in Sections~\ref{sec:system_params} and~\ref{sec:control_params}, while the reasoning behind and effects of the values they take are discussed in Section~\hl{[TODO find section discussing selection of operating point]}.
+\newpar
+These quantities determines matrices $\boldsymbol{A}$, $\boldsymbol{b}$, $\boldsymbol{b}_d$, $\boldsymbol{c}$, the steady-state input vector $\boldsymbol{U}$, the steady-state state vector $\boldsymbol{X}$, and the steady-state output $\boldsymbol{Y}$.
+\newpar
+This section will outline the approach taken in designing a continuous-time controller utilising observer state feedback and integral action. The resulting controller will be discretised under a regime appropriate for implementation on a microcontroller.
+\paragraph{Notation}
+\begin{itemize}
+    \item
+        \begin{tikzpicture}[scale = 0.8]
+        \draw[->, ultra thick] (0,0) -- (1,0);
+        \end{tikzpicture}
+        (thick line): vector quantity
+\end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Open-loop: a model to estimate time-varying perturbations}
-The block diagram for our open-loop perturbed system is provided in Figure~\ref{block:openloop}.
-Thick lines denote vector quantities.
+Every state variable in the DC-DC converter circuit is the sum of a steady-state and time-varying component. The steady-state components are calculated according to Equation~(\ref{eqn:modelY}), while our model estimates the values of the time-varying components.
 \begin{figure}[H]
 \centering
 \fbox{
@@ -38,22 +52,31 @@ Thick lines denote vector quantities.
 \draw[->] (bc) -- (13,0);
 %more lines
 \draw[->] (0,0) -- (bbD);
-\draw[->, ultra thick] (bbD) -- node [anchor = south, pos = 0.8] {$+$} (s1);
+\draw[->, ultra thick] (bbD) -- node [anchor = south, pos = 0.5] {$+$} (s1);
 %labels
 \coordinate[label = above:$\hat{\boldsymbol{u}}(t)$] (u) at (0,2);
 \coordinate[label = above:$\hat{d}(t)$] (hatd) at (0,0);
 \coordinate[label = above:$\hat{y}(t)$] (haty) at (12.5,0);
 \end{tikzpicture}
 }
-\caption{}
+\caption{Block diagram representation of Equation~(\ref{eqn:timevarying2})}
 \label{block:openloop}
 \end{figure}
+The block diagram of Figure~\ref{block:openloop} is a representation of the relationship between the time-varying components of the state variables.
+\newpar
+It is desired to achieve control of the model in Figure~\ref{block:openloop}. A reasonable control regime to be investigated first is that of full-state feedback. Full-state feedback operates by generating a (scalar) control signal as the product of a (horizontal) gain matrix $\boldsymbol{K}$ and the (vertical) state vector $\boldsymbol{x}$ (where $\boldsymbol{K}$ contains the same number of entries as $\boldsymbol{x}$). In controlling a DC-DC converter circuit, this control signal will be the duty ratio $d$, and in the model of the \'Cuk converter, this duty ratio (or rather the time-varying component of it) will enter the system by the matrix $\boldsymbol{b}_d$. The entries of the gain matrix $\boldsymbol{K}$ are determined according to desired closed-loop transient performance, and there exists many methods for computing them (e.g pole-placement, LQR, loop shaping).
+\newpar
+Therefore, values of the states comprising the state vector (i.e. $v_{C1}$, $v_{C2}$, $i_{L1}$, and $i_{L2}$ in the \'Cuk converter) at every point in time\footnote{Note that in discrete time (see Section~\ref{sec:disc}) the equivalent is that values of the states are required at the transition between every successive integer time-step.}, are required to implement full-state feedback. The most straightforward method of obtaining this information is to implement sensors in hardware to measure $v_{C1}$, $v_{C2}$, $i_{L1}$, and $i_{L2}$.
+\newpar
+Sensors for measuring capacitor voltages would be relatively simple to implement. Indeed, our product uses voltage sensing circuitry to measure the converter circuit input and output voltages $v_g$ and $v_o$\footnote{See Section~\ref{sec:voltagesensing}.}. However, the states $v_{C1}$ and $v_{C2}$ are defined as the voltages across the ideal capacitor elements $C_1$ and $C_2$ (that is, as decoupled from their respective ESR elements). It is not possible to build a sensor in hardware that would measure these ideal voltages\footnote{Although they could theoretically be estimated through knowledge of the capacitor parasitic resistances $R_3$ and $R_4$.}. Additionally, current sensors for the inductors would require the introduction of current sense resistors\footnote{Measuring current through the measuring of the voltage drop across a current sense resistor is the hardware sensor implementation most relevant in the measuring of $i_{L1}$ and $i_{L2}$.} in series with the inductors $L_1$ and $L_2$. As will be discussed in Section~\hl{[TODO find section on why low parasitic important]}, this degrades the conversion ratio from input to output voltages in the converter circuit.
+\newpar
+Thus a Luenberger observer will be investigated as a method for obtaining estimates of the state vector to permit the implementation of full-state (now observer) feedback.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Estimating voltages and currents for full-state feedback: the Luenberger observer}
-For our system, there are states that are not able to be measured through any sensor regime (e.g. the voltages across ideal capacitors decoupled from parasitic resistances $v_{C1}$, $v_{C2}$). A Luenberger observer may be used to produce estimates of the system states, which may then be employed in a full-state feedback closed-loop control regime.
-\newpar
-A system is said to be observable (i.e. has no unobservable states) if the observability matrix as defined in Equation~(\ref{eqn:observable}) has full rank. This may easily be checked using the \textsf{MATLAB} call of~(\ref{matlab:observable}).
+% A Luenberger observer may be used to produce estimates of the time-varying components of the system states which may then be employed in a full-state feedback closed-loop control regime.
+% \newpar
+A system is said to be observable (i.e. has no unobservable states) if the observability matrix as defined in Equation~(\ref{eqn:observable}) has full rank. For a $n$-state SISO system this may easily be checked using the \textsf{MATLAB} call of~(\ref{matlab:observable})\footnote{It was decided not to include the detailed workings of observability in this report in favour of including greater discussion on hardware, programming, and implementation.}.
 \begin{align}
 \mathcal{O}
 =
@@ -70,10 +93,9 @@ A system is said to be observable (i.e. has no unobservable states) if the obser
 \end{align}
 %
 \begin{align}
-\texttt{rank(obsv(A, c)) == 4}
+\texttt{rank(obsv(A, c)) == n}
 \label{matlab:observable}
 \end{align}
-~\\
 ~\rule{\textwidth}{0.5pt}
 \begin{align}
 \boldsymbol{\dot{\hat{x}}}_\ell (t) &= \boldsymbol{A}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\squarey{\hat{y}(t) - \hat{y}_\ell(t)}
@@ -82,22 +104,28 @@ A system is said to be observable (i.e. has no unobservable states) if the obser
 \boldsymbol{\dot{\hat{x}}}_\ell (t) &= \squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\hat{y}(t)
 \label{eqn:observer2}
 \end{align}
-For an observable system, estimates of the perturbed plant states may be obtained by extracting the state vector in the system described according to Equation~(\ref{eqn:observer}) and the equivalent Equation~(\ref{eqn:observer2}), where
+For an observable system modelled through the technique of state-space averaging, an estimate of the perturbed state vector may be obtained by extracting the state vector in the system described according to Equation~(\ref{eqn:observer}) and the equivalent Equation~(\ref{eqn:observer2}), where
 \begin{itemize}
-\item $\boldsymbol{x}_\ell(t)$: vector containing state estimates
-\item $y(t)$: measured converter circuit output voltage
-\item $\hat{y}(t) = y(t) - Y$ where $Y$ is the steady-state output voltage as predicted by converter circuit model according to Equation~(\ref{eqn:modelY})
-\item $\hat{\boldsymbol{u}}(t) = \boldsymbol{u}(t) - \boldsymbol{U} = \begin{bmatrix}v_g - V_g & 0 & 0 & 0\end{bmatrix}$ is measured in the converter circuit
-\item $\boldsymbol{L}$: observer gain
+    \item $\boldsymbol{x}_\ell(t)$: vector containing state estimates
+    \item $y(t)$: output state
+    \begin{itemize}
+        \item for a DC-DC converter circuit this value is obtained through measurement in hardware
+    \end{itemize}
+    \item $\hat{y}(t) = y(t) - Y$ where $Y$ is the steady-state component of the output state as predicted by the converter circuit model according to Equation~(\ref{eqn:modelY})
+    \item $\hat{\boldsymbol{u}}(t) = \boldsymbol{u}(t) - \boldsymbol{U}$
+    \begin{itemize}
+        \item for a DC-DC converter circuit $\boldsymbol{u}(t) - \boldsymbol{U} = \begin{bmatrix}v_g - V_g & 0 & 0 & 0\end{bmatrix}$ where $v_g$ is the converter circuit input voltage as measured in hardware and $V_g$ is one of the parameters used in deciding an operating point to linearise the model about
+    \end{itemize}
+    \item $\boldsymbol{L}$: observer gain matrix
 \end{itemize}
-If $\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}$ is stable, then the error between the estimated and actual system states decays to 0 exponentially.
+If $\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}$ is stable, then the error between the estimated and actual system states decays to 0 exponentially. Under this condition the estimated system states may replace the actual system states in a full-state feedback regime.
 \newpar
-The observer gain matrix is typically populated such that the eigenvalues of $\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}$ are at least $10 \times$ faster than the eigenvalues of the closed-loop feedback system. The eigenvalues of this system may be placed by specifying the pole locations and calling \textsf{MATLAB}'s \texttt{acker} function as per~(\ref{matlab:place}).
+The observer gain matrix is typically populated such that the eigenvalues of $\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}$ are at least $10 \times$ faster than the eigenvalues of the closed-loop feedback system. This may be done using pole placement, where the poles are chosen to achieve this speed of the observer dynamics. A call to \textsf{MATLAB}'s \texttt{acker} function as
 \begin{align}
-\texttt{L = acker(A', c', [p p p p])'}
+\texttt{L = acker(A', c', [p p \ldots p])'} \qquad \text{(n-}\texttt{p}\text{'s)}
 \label{matlab:place}
 \end{align}
-where \texttt{p} is the desired pole location. Note that $(\quad\texttt{'}\quad)$ denotes transposition.
+where \texttt{p} denotes pole location, is a simple method for populating the observer gain matrix for a $n$-state system. Note that $(\quad\texttt{'}\quad)$ denotes transposition.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 The block diagram representation of Equation~(\ref{eqn:observer}) is given in Figure~\ref{block:observer}.
 \begin{figure}[H]
@@ -135,11 +163,10 @@ The block diagram representation of Equation~(\ref{eqn:observer}) is given in Fi
 \coordinate[label = above:$\hat{y}(t)$] (yhat) at (13,4);
 \end{tikzpicture}
 }
-\caption{}
+\caption{Block diagram representation of Equation~\ref{eqn:observer}}
 \label{block:observer}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The same system may be represented in a slightly different way that is of more relevance under discretisation. This different representation is provided in Figure~\ref{block:observer2}. Blocks to extract the true state estimate (i.e. sum of transient and steady-state) are introduced also. This system is described by Equation~(\ref{eqn:observer2}).
 \begin{figure}[H]
 \centering
 \fbox{
@@ -176,10 +203,10 @@ The same system may be represented in a slightly different way that is of more r
 \coordinate[label = above:$\hat{\boldsymbol{x}}_\ell(t)$] (hatx) at (9,0);
 \end{tikzpicture}
 }
-\caption{}
+\caption{Block diagram representation of Equation~\ref{eqn:observer2}}
 \label{block:observer2}
 \end{figure}
-The state vector $\boldsymbol{x}_l (t)$ contains the estimates of the internal system states, while $\hat{\boldsymbol{x}}_l (t)$ may be fed back under full-state feedback to achieve desirable closed-loop performance.
+The system of Figure~\ref{block:observer} may be represented in a slightly different way that is of more relevance under discretisation. This different representation is provided in Figure~\ref{block:observer2}. Blocks to extract the true state estimate (i.e. sum of transient and steady-state) are introduced also. This system is described by Equation~(\ref{eqn:observer2}). The state vector $\boldsymbol{x}_l (t)$ contains the estimates of the internal system states, while $\hat{\boldsymbol{x}}_l (t)$ may be fed back under full-state feedback to achieve desirable closed-loop performance.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Closing the loop: observer state feedback}
@@ -281,6 +308,10 @@ The gain matrix $\boldsymbol{K}_f$ is populated to produce desirable closed-loop
 \draw[->] (i2) -- (bKi);
 \draw[->] (bKi) -- node [anchor = south, pos = 0.8] {$+$} (s5);
 \draw[->] (-8.5,-1) -- (-7,-1) -- node [anchor = east, pos = 0.8] {$+$} (s4);
+% more lines
+\draw[->] (-0.2,1) -- (-0.2,4);
+% more labels
+\coordinate[label = above:{to converter circuit}] (dout) at (-0.2,4);
 \end{tikzpicture}
 }
 \caption{}
@@ -357,7 +388,7 @@ subject to system dynamics
 \end{align*}
 and the conditions
 \begin{itemize}
-    \item $(\boldsymbol{A}, \, \boldsymbol{B})$ is stabilizable\footnote{definition: all uncontrollable states are bounded; our system has no uncontrollable states and so is stabilizable} from \texttt{u}
+    \item $(\boldsymbol{A}, \, \boldsymbol{B})$ is stabilisable\footnote{i.e. all uncontrollable states are bounded; our system has no uncontrollable states and so is stabilisable} from \texttt{u}
     \item $0 < \boldsymbol{R}$
 \end{itemize}
 For our purposes the \texttt{lqr} function is called as
@@ -368,10 +399,10 @@ where, for our system
 \begin{itemize}
 	\item $\texttt{A\_a}$: $\boldsymbol{A}_a$ of Equation~\ref{eqn:augmentedA}
 	\item $\texttt{bD\_a}$: $\boldsymbol{b}_{d_a}$ of Equation~\ref{eqn:augmentedbD}
-	\item $w \in \Re$: scalar multiplicative factor of $q$
-	\item $q\in \Re^{5 \times 5}$: $\boldsymbol{Q}$ of Equation~\ref{eqn:LQR}; diagonal positive definite weight matrix that penalises variation of states from desired value
-	\item $r \in \Re$: $\boldsymbol{R}$ of Equation~\ref{eqn:LQR}; weight that penalises control effort
-	\item $N = 0$
+	\item $\texttt{w} \in \Re$: scalar multiplicative factor of $q$
+	\item $\texttt{q}\in \Re^{5 \times 5}$: $\boldsymbol{Q}$ of Equation~\ref{eqn:LQR}; diagonal positive definite weight matrix that penalises variation of states from desired value
+	\item $\texttt{r} \in \Re$: $\boldsymbol{R}$ of Equation~\ref{eqn:LQR}; weight that penalises control effort
+	\item $\boldsymbol{N} = 0$
 \end{itemize}
 $\boldsymbol{K}$ is extracted as
 \begin{align*}
@@ -389,7 +420,7 @@ where $\boldsymbol{S}$ is the solution to the algebraic Riccati equation
 \end{align*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Discretisation: achieving emulation of a continuous-time system on a discrete-time microprocessor}\label{sec:disc}
+\subsection{Discretisation: estimating a continuous-time system using a discrete-time system}\label{sec:disc}
 The control theory thus far has operated in the continuous-time domain. For implementation of our control algorithm on the microcontroller, the observer system and integral action must be discretised. The appropriate discretisation method for our system is `zero-order hold' (ZOH). In this method the control inputs ($\hat{d}(t)$, $\hat{\boldsymbol{u}}(t)$, $y(t)$, and $\hat{y}(t)$) are assumed to be constant over the sampling period $T_s$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Discretising the observer - ZOH}
@@ -530,13 +561,17 @@ The block diagram for the resulting fully-discrete control loop is given in Figu
 \draw[->] (i2) -- (bKi);
 \draw[->] (bKi) -- node [anchor = south, pos = 0.8] {$+$} (s5);
 \draw[->] (-8.5,-1) -- (-7,-1) -- node [anchor = east, pos = 0.8] {$+$} (s4);
+% more lines
+\draw[->] (-0.2,1) -- (-0.2,4);
+% more labels
+\coordinate[label = above:{to converter circuit}] (dout) at (-0.2,4);
 \end{tikzpicture}
 }
 \caption{}
 \label{block:control_discrete}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Control summary}
+\subsection{Control summary}
 At integer time step $k$:
 \begin{itemize}
 \item $r\squarey{k}$: input reference signal/desired output voltage
@@ -561,7 +596,7 @@ At integer time step $k$:
     \end{itemize}
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Physical realisation of our control loop}\label{sec:hardware_for_control}
+\subsection{Notes on realising the control loop in hardware}\label{sec:hardware_for_control}
 The basic modules required for hardware implementation of our control loop will be introduced presently.
 \paragraph{Measuring $v_g(t)$ and $y(t)$: op-amp sensing circuitry}
 \paragraph{Writing the control signal to the DC-DC converter: achieving PWM functionality in hardware}

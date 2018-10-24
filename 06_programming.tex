@@ -54,12 +54,13 @@ The difference equation of this transfer function is given by:
 \]
 \hl{where $y[k]$ is the control signal and $x[k]$ is the error, $k$ is the time step and $T_s$ is the sampling interval (250$\mu$s).}
 
-This control signal is then get multiplied by the constant gain determined by LRQ, discussed in Section XXX.
+This control signal is then get multiplied by the constant gain determined by LRQ, discussed in Section XXX. 
+\hl{Maybe worth talking about the performance changing gain in result?}
 
-Anti-windup was implemented \hl{to avoid saturation}. After a new control signal is calculated, the magnitude of the calculated signal was checked. When the signal is too large or too small, it gets clipped to the maximum, 80\% or the minimum of 0\% and the excess is stored as \lq anti-windup\lq. When there is non-zero \lq anti-windup\lq from previous sampling period, this is subtracted from the control signal. 
+When there is a large change in reference point, the integrator gets saturated. Once it reaches saturation, the integral term accumulates and keep increasing. This would cause large delay in the system. Hence anti-windup was implemented to avoid actuator saturation. After a new control signal is calculated, the magnitude of the control signal was checked. When the signal is too large or too small, it gets clipped to the maximum, 80\% or the minimum of 0\% and the excess is stored as \lq anti-windup\lq. When there is non-zero \lq anti-windup\lq from previous sampling period, this is subtracted from the control signal. 
 
 \subsection{PWM as control signal}
-The controller calculates the duty cycle of PWM signal that is to be sent to the converter. The frequency of the duty cycle is set to 100kHz this is because \hl{minimum loss?}. 
+The controller calculates the duty cycle of PWM signal to be sent to the converter. The frequency of the duty cycle is set to 100kHz this is because \hl{minimum loss?}. 
 
 The duty cycle of PWM is controlled by PDC1 register. It is determined by the formula\cite{picPWM}:
 \[

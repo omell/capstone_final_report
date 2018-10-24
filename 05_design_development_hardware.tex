@@ -85,7 +85,7 @@ Overall system architecture is outlined in Figure~\ref{flow:system_architecture}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
-\subsection{Ultimate system parameters} \label{sec:system_params}
+\subsection{Ultimate system parameters}\label{sec:system_params}
 \subsubsection{\'{C}uk converter}
 \begin{table}[H]
 \centering
@@ -117,7 +117,25 @@ $R$ & $100 \ \mathsf{\Omega}$ & -\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Peripherals}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Other system parameters}
+\subsubsection{Defining the operating point to linearise about}\label{sec:control_params}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Designator & Value\\
+\hline
+$V_g$ & $5 \ \mathsf{V}$\\
+\hline
+$V_D$ & $0.36 \ \mathsf{V}$\\
+\hline
+$D$ & $50 \ \mathsf{\%}$\\
+\hline
+\end{tabular}
+\caption{}
+\label{tab:control_values}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Other system parameters} \label{sec:system_params}
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|c|}
@@ -132,8 +150,6 @@ $f_\text{sample}$ & $10 \ \mathsf{kHz}$\\
 $d \text{(min)}$ & $0 \ \mathsf{\%}$\\
 \hline
 $d \text{(max)}$ & $90 \ \mathsf{\%}$\\
-\hline
-$D$ & $50 \ \mathsf{\%}$\\
 \hline
 \end{tabular}
 \caption{}
