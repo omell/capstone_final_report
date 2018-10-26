@@ -1,26 +1,87 @@
 \section{Discussion}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \subsection{Physical Modelling}
-% \hl{TODO}
-% \begin{itemize}
-% \item switching losses
-% \item MOSFET capacitance
-% \end{itemize}
+\subsection{Physical Modelling}
+\subsubsection{Effect of a change in load resistance \hl{TODO finish}}\label{sec:varyload}
+A typical requirement of DC-DC converters is for operating over a wide range of load resistances. The load resistance required for the \'Cuk converter to perform \hl{smoothly/effectively} is defined in lower bound by \hl{stability}: load resistance $R$ appears in the \hl{denominator} of Equations~(\ref{eqn:A_avg}) through~(\ref{eqn:c_avg}).
+\newpar
+The upper bound on load resistance is determined by the continuous conduction mode condition:
+\begin{align}
+\frac{(1 - d)^2 R T}{2 d} < L_1. \label{eqn:conductionmode}
+\end{align}
+For the operating parameters/component values of Tables~\ref{tab:cuk_values} through~\ref{tab:system_values}, the upper bound on load resistance $R$ is
+\begin{align*}
+R < \frac{2 d L_1}{(1 - d)^2 T} = \frac{2 \cdot 0.8 \cdot 470 \times 10^{-6}}{(1 - 0.8)^2 \cdot 10 \times 10^{-6}}.
+\end{align*}
+\hl{TODO explain function of d (where maximum etc.)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Control Design}
 % \hl{TODO: recommendations for future projects}
 \subsubsection{Generating estimates of state variables}\label{sec:observing}
-The observability matrix of our system has full rank, implying that there are no unobservable states. This fact by itself is limited in its insight however; another element affecting the accuracy of an observer regime is the condition number of the observability matrix.
+The observability matrix of our system has full rank, implying that there are no unobservable states. This fact by itself is limited in its insight however: another element affecting the accuracy of an observer regime is the condition number of the observability matrix.
 \newpar
 With the component values specified in Table~\ref{tab:cuk_values}:
 \begin{align}
 \texttt{cond(obsv(A, c)) = 5.5831e+13}
 \end{align}
-which is much larger than 1, indicating an ill-conditioned observability matrix. This suggests sub-optimal performance of our observer regime.
+which is much larger than 1, indicating an ill-conditioned observability matrix. This suggests poor accuracy of the estimates produced by our observer regime.
 \newpar
-In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$ could be extracted with an observer regime. States $v_{C1}$ and $i_{L1}$ were not able to be estimated to reasonable precision. Simulation data in support of this behaviour is provided in Figures~\ref{fig:estimating} and~\ref{fig:estimating2}.
+In practice, it was found that good (to be quantified in following paragraphs) estimates of states $v_{C2}$ and $i_{L2}$ could be extracted with an observer regime. States $v_{C1}$ and $i_{L1}$ were not able to be estimated to reasonable precision. Simulation data in support of this behaviour is provided in Figures~\ref{fig:estimating} and~\ref{fig:estimating2}.
+\newpar
+$v_{C2}$: output voltage $v_o$ is almost exactly $v_{C2}$ ($v_o$ slightly larger due to voltage drop across $C_2$ parasitic resistance $R_4$). No difference between estimated $v_{C2}$ in \textsf{Simulink} or hardware (i.e. reading estimates microcontroller returns over UART) and simulated $v_o$ could be observed to 3 decimal places for $\textsf{ref: } \minus 16 \ \mathsf{V}$.
+% Note that in below equations $\sim$ denotes that the quantity \hl{ripples} between the upper and lower values.
+\newpar
+\hl{TODO explain tables; explanation of estimates for $i_{L2}$}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+    $\textsf{ref} \ [\mathsf{V}]$ & $i_{L2}$ (simulated, steady-state value) $[\mathsf{A}]$ & $i_{L2}$ (estimated, \textsf{Simulink}) $[\mathsf{A}]$ & Error $[\mathsf{\%}]$\\
+    \hline
+    $\minus 16$ & $\minus 0.1616$ & $\minus 0.15948$ & $1.3$\\
+    \hline
+    \end{tabular}
+    \caption{}
+    \label{tab:estimating_iL2_ref16}
+\end{table}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+    $\textsf{ref} \ [\mathsf{V}]$ & $i_{L2}$ (simulated, steady-state value) $[\mathsf{A}]$ & $i_{L2}$ (estimated, hardware) $[\mathsf{A}]$ & Error $[\mathsf{\%}]$\\
+    \hline
+    $\minus 2$ & $\minus 19.89 \times 10^{-3}$ & $\minus 19.9 \times 10^{-3}$ & $0.07$\\
+    \hline
+    \end{tabular}
+    \caption{Estimated $i_{L2}$ in this test was extracted from observer running on microcontroller by printing the value over UART to a connected laptop}
+    \label{tab:estimating_iL2_ref2}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{comment}
+\begin{align*}
+i_{L2}: \textsf{ref: } \minus 16 \ \mathsf{V} \implies &i_{L2}(\text{simulated}): \minus 0.1211 \sim \minus 0.20205 \ \mathsf{A};
+\\
+\implies &i_{L2}(\text{simulated, steady-state}): \minus 0.1616 \ \mathsf{A};
+\\
+&i_{L2}(\text{estimated; }\textsf{Simulink}): \minus 0.15948 \ \mathsf{A};
+\\
+\implies &\textsf{error: } 1.3 \ \mathsf{\%}.
+\end{align*}
+\begin{align*}
+i_{L2}: \textsf{ref: } \minus 2 \ \mathsf{V} \implies &i_{L2}(\text{simulated}): \minus 2.621 \times 10^{-3} \sim \minus 37.15 \times 10^{-3} \ \mathsf{A};
+\\
+\implies &i_{L2}(\text{simulated, steady-state}): \minus 19.89 \times 10^{-3} \ \mathsf{A};
+\\
+&i_{L2}(\text{estimated; }\textsf{hardware}): \minus 19.9 \times 10^{-3} \ \mathsf{A};
+\\
+\implies &\textsf{error: } 0.07 \ \mathsf{\%}.
+\end{align*}
+\end{comment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In explaining the lack of accuracy in estimating $v_{C1}$ it is suggested that the small-ripple approximation is not valid for this state: for step changes in reference, $v_{C1}$ undergoes the greatest change in magnitude of any of the system state variables in the circuit. Thus the approximation that the perturbation from the steady-state value ($\hat{v}_{C1}$) is small relative to the steady-state value ($V_{C1}$), as calculated according to the steady-state operating point the model is linearised about (Equation~(\ref{eqn:modelY}); $V_{C1}$ is first element in steady-state state vector $\boldsymbol{X}$), is not valid.
+\newpar
+It is suggested that errors in the equations relating to the inductor $L_1$ used in describing the circuit (i.e. those of Section~\ref{sec:circuitanalysis} and Appendix~\ref{apx:circuit_analysis}) are the cause of the lack of accuracy in estimating $i_{L1}$. This was noticed when the project was at an advanced stage and as such was not corrected before implementing the controller in the final product.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[H]
     \begin{framed}
@@ -28,8 +89,8 @@ In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$
     \centering
     \begin{subfigure}[b]{0.8\textwidth}
     \centering\includegraphics[height = 6cm]{figures/estimation/ref_y_pulsetrain.pdf}
-    \caption{Reference train and output voltage response used in generating data of Figures~\ref{fig:estimatingfirst} through~\ref{fig:estimatinglast}}
-    \label{}
+    \caption{Reference train and output voltage response}
+    \label{fig:estimatingconditions1}
     \end{subfigure}
     \\[11pt]
     \begin{subfigure}[b]{0.45\textwidth}
@@ -43,14 +104,14 @@ In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$
     \centering
     \includegraphics[height = 6cm]{figures/estimation/vC2_vC2.pdf}
     \caption{$v_{C2}$; plots coincide exactly at this scale}
-    \label{}
+    % \label{}
     \end{subfigure}
     \\[11pt]
     \begin{subfigure}[b]{0.45\textwidth}
     \centering
     \includegraphics[height = 6cm]{figures/estimation/iL1_iL1.pdf}
     \caption{$i_{L1}$}
-    \label{}
+    % \label{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
@@ -60,7 +121,8 @@ In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$
     \label{fig:estimatinglast}
     \end{subfigure}
     \end{framed}
-    \caption{}
+    \vspace*{-8mm}
+    \caption{Reference train of Figure~\ref{fig:estimatingconditions1} used in generating data of Figures~\ref{fig:estimatingfirst} through~\ref{fig:estimatinglast}}
     \label{fig:estimating}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,8 +132,8 @@ In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$
     \centering
     \begin{subfigure}[b]{0.8\textwidth}
     \centering\includegraphics[height = 6cm]{figures/estimation/ref_y_ramp.pdf}
-    \caption{Reference voltage, intput voltage, and output voltage used in generating data of Figures~\ref{fig:estimating2first} through~\ref{fig:estimating2last}}
-    \label{}
+    \caption{Reference voltage, input voltage, and output voltage}
+    \label{fig:estimatingconditions2}
     \end{subfigure}
     \\[11pt]
     \begin{subfigure}[b]{0.45\textwidth}
@@ -85,14 +147,14 @@ In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$
     \centering
     \includegraphics[height = 6cm]{figures/estimation/vC2_vC2b.pdf}
     \caption{$v_{C2}$; plots coincide exactly at this scale}
-    \label{}
+    % \label{}
     \end{subfigure}
     \\[11pt]
     \begin{subfigure}[b]{0.45\textwidth}
     \centering
     \includegraphics[height = 6cm]{figures/estimation/iL1_iL1b.pdf}
     \caption{$i_{L1}$}
-    \label{}
+    % \label{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
@@ -102,7 +164,8 @@ In practise, it was found that precise estimates of states $v_{C2}$ and $i_{L2}$
     \label{fig:estimating2last}
     \end{subfigure}
     \end{framed}
-    \caption{}
+    \vspace*{-8mm}
+    \caption{Reference and input voltages of Figure~\ref{fig:estimatingconditions2} used in generating data of Figures~\ref{fig:estimating2first} through~\ref{fig:estimating2last}}
     \label{fig:estimating2}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

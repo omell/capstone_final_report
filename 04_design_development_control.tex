@@ -29,7 +29,7 @@ This section will outline the approach taken in designing a continuous-time cont
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Open-loop: a model to estimate time-varying perturbations}
-Every state variable in the DC-DC converter circuit is the sum of a steady-state and time-varying component. The steady-state components are calculated according to Equation~(\ref{eqn:modelY}), while our model estimates the values of the time-varying components.
+Every state variable in the state-space averaged model of a DC-DC converter circuit is the sum of a steady-state and time-varying component. The steady-state components are calculated according to Equation~(\ref{eqn:modelY}), while our model estimates the values of the time-varying components.
 \begin{figure}[H]
 \centering
 \fbox{
@@ -96,12 +96,12 @@ A system is said to be observable (i.e. has no unobservable states) if the obser
 \texttt{rank(obsv(A, c)) == n}
 \label{matlab:observable}
 \end{align}
-~\rule{\textwidth}{0.5pt}
+\rule{\textwidth}{0.5pt}
 \begin{align}
-\boldsymbol{\dot{\hat{x}}}_\ell (t) &= \boldsymbol{A}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\squarey{\hat{y}(t) - \hat{y}_\ell(t)}
+\boldsymbol{\dot{\hat{x}}}_\ell (t) &= \boldsymbol{A}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\squarey{\hat{y}(t) - \hat{y}_\ell(t)},
 \label{eqn:observer}
 \\[11pt]
-\boldsymbol{\dot{\hat{x}}}_\ell (t) &= \squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\hat{y}(t)
+\boldsymbol{\dot{\hat{x}}}_\ell (t) &= \squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\hat{y}(t).
 \label{eqn:observer2}
 \end{align}
 For an observable system modelled through the technique of state-space averaging, an estimate of the perturbed state vector may be obtained by extracting the state vector in the system described according to Equation~(\ref{eqn:observer}) and the equivalent Equation~(\ref{eqn:observer2}), where
@@ -114,7 +114,7 @@ For an observable system modelled through the technique of state-space averaging
     \item $\hat{y}(t) = y(t) - Y$ where $Y$ is the steady-state component of the output state as predicted by the converter circuit model according to Equation~(\ref{eqn:modelY})
     \item $\hat{\boldsymbol{u}}(t) = \boldsymbol{u}(t) - \boldsymbol{U}$
     \begin{itemize}
-        \item for a DC-DC converter circuit $\boldsymbol{u}(t) - \boldsymbol{U} = \begin{bmatrix}v_g - V_g & 0 & 0 & 0\end{bmatrix}$ where $v_g$ is the converter circuit input voltage as measured in hardware and $V_g$ is one of the parameters used in deciding an operating point to linearise the model about
+        \item for the \'Cuk converter modelled with the diode forward voltage drop, $\boldsymbol{u}(t) - \boldsymbol{U} = \begin{bmatrix}v_g - V_g & 0 & 0 & 0\end{bmatrix}$ where $v_g$ is the converter circuit input voltage as measured in hardware and $V_g$ is the converter circuit input voltage as used in defining the operating point to linearise the model about
     \end{itemize}
     \item $\boldsymbol{L}$: observer gain matrix
 \end{itemize}
@@ -122,7 +122,7 @@ If $\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}$ is stable, then the
 \newpar
 The observer gain matrix is typically populated such that the eigenvalues of $\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}$ are at least $10 \times$ faster than the eigenvalues of the closed-loop feedback system. This may be done using pole placement, where the poles are chosen to achieve this speed of the observer dynamics. A call to \textsf{MATLAB}'s \texttt{acker} function as
 \begin{align}
-\texttt{L = acker(A', c', [p p \ldots p])'} \qquad \text{(n-}\texttt{p}\text{'s)}
+\texttt{L = acker(A', c', [p p \ldots p])'} \qquad \text{(n-}\texttt{p}\text{'s)},
 \label{matlab:place}
 \end{align}
 where \texttt{p} denotes pole location, is a simple method for populating the observer gain matrix for a $n$-state system. Note that $(\quad\texttt{'}\quad)$ denotes transposition.
@@ -210,6 +210,7 @@ The system of Figure~\ref{block:observer} may be represented in a slightly diffe
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Closing the loop: observer state feedback}
+With the observer system now described in general terms\footnote{Population of the observer gain matrix $\boldsymbol{L}$ will occur in Section~\ref{sec:simulation_specifications}.}, state feedback control may be investigated.
 \begin{figure}[H]
 \centering
 \fbox{
@@ -247,12 +248,24 @@ The system of Figure~\ref{block:observer} may be represented in a slightly diffe
 % feedback lines
 \draw[->, ultra thick] (9,-2) -- (9,-4) -- (bKf);
 \draw[->] (bKf) -- (-1,-4) -- (-1,1) -- (bbD);
+% more lines
+\draw[->] (-1,1) -- (-1,4);
+% more labels
+\coordinate[label = above:{to converter circuit}] (dout) at (-1,4);
 \end{tikzpicture}
 }
-\caption{}
+% \caption[Caption without FN]{Block diagram representing a system controlled by observer state feedback\footnotemark}
+\caption{Block diagram representing a system controlled by observer state feedback}
 \label{block:feedback}
 \end{figure}
-The gain matrix $\boldsymbol{K}_f$ is populated to produce desirable closed-loop performance. The non-zero steady-state error resulting from this scheme may be eliminated by introducing a reference input and integral action.
+Note that in Figure~\ref{block:feedback} and future block diagrams with lines indicating `to converter circuit' the actual duty ratio as sent to the PWM module is $d(t) = D + \hat{d}(t)$, according to Equation~(\ref{eqn:dDhatd}).
+\newpar
+%
+% \footnotetext{Note that in this and future block diagrams extracting the perturbation in duty ratio $\hat{d}(t)$ the duty ratio as sent to the PWM module is $d(t) = D + \hat{d}(t)$, according to Equation~(\ref{eqn:dDhatd}).}
+%
+The gain matrix $\boldsymbol{K}_f$ is populated to produce desirable closed-loop performance. Full-state feedback is primarily used to achieve smooth system response to step changes in reference, but produces non-zero steady state error. Thus full-state feedback addresses 1 of the control objectives of Section~\ref{sec:objectives}. The non-zero steady-state error resulting from this scheme may be eliminated by introducing a reference input and integral action, to achieve the respective control objective of Section~\ref{sec:objectives}. The reference input control signal will be the output voltage desired for the converter to achieve.
+\newpar
+Updating the model for integral action may be achieved by augmenting the state vector with another state representing the integral of the difference between the reference input and measured output. This augmentation approach will be detailed in the following section.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Introducing a reference input and integral action}
@@ -276,10 +289,10 @@ The gain matrix $\boldsymbol{K}_f$ is populated to produce desirable closed-loop
 \draw[->, ultra thick] (s1) -- (i1);
 \draw[->, ultra thick] (i1) -- node [anchor = south, pos = 0.8] {$+$} (s2);
 \draw[->, ultra thick] (9,0) -- (9,-2) -- (bA);
-\draw[->, ultra thick] (bA) -- (5,-2) -- (5,-1) -- node [anchor = east, pos = 0.1] {$+$} (s1);
-\draw[->, ultra thick] (bbD) -- (3,1) -- node [anchor = south, pos = 0.9] {$+$} (s1);
+\draw[->, ultra thick] (bA) -- (5,-2) -- (5,-1) -- node [anchor = east, pos = 0.01] {$+$} (s1);
+\draw[->, ultra thick] (bbD) -- (3,1) -- node [anchor = south, pos = 0.85] {$+$} (s1);
 % more observer lines
-\draw[->, ultra thick] (bL) -- (3,-1) -- node [anchor = east, pos = 0.8] {$+$} (s1);
+\draw[->, ultra thick] (bL) -- (3,-1) -- node [anchor = east, pos = 0.85] {$+$} (s1);
 \draw[->] (0,-1) -- (bL);
 \draw[->, ultra thick] (11,4) -- node [anchor = west, pos = 0.9] {$+$} (s2);
 \draw[->, ultra thick] (s2) -- (13,0);
@@ -306,85 +319,108 @@ The gain matrix $\boldsymbol{K}_f$ is populated to produce desirable closed-loop
 \draw[->] (-8.5,1) -- node [anchor = south, pos = 0.8] {$-$} (s4);
 \draw[->] (s4) -- (i2);
 \draw[->] (i2) -- (bKi);
-\draw[->] (bKi) -- node [anchor = south, pos = 0.8] {$+$} (s5);
+\draw[->] (bKi) -- node [anchor = south, pos = 0.7] {$+$} (s5);
 \draw[->] (-8.5,-1) -- (-7,-1) -- node [anchor = east, pos = 0.8] {$+$} (s4);
 % more lines
-\draw[->] (-0.2,1) -- (-0.2,4);
+\draw[->] (-0.1,1) -- (-0.1,4);
 % more labels
-\coordinate[label = above:{to converter circuit}] (dout) at (-0.2,4);
+\coordinate[label = above:{to converter circuit}] (dout) at (-0.1,4);
 \end{tikzpicture}
 }
-\caption{}
+\caption{Block diagram representing observer state feedback and integral action acting on the model of Equation~(\ref{eqn:timevarying2})}
 \label{block:integral}
 \end{figure}
-So our microcontroller will estimate the above system and send to the converter a PWM signal of duty ratio $d(t) = \hat{d}(t) + D$ where $D$ is the steady-state duty ratio used in generating a linear model of the system.
+% So our microcontroller will estimate the above system and send to the converter a PWM signal of duty ratio $d(t) = \hat{d}(t) + D$ where $D$ is the steady-state duty ratio used in generating a linear model of the system.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpar
+% \newpar
 Our system description may be updated by augmenting the state vector with an additional state for the integral of the error $\dot{x}_i(t) = e(t) = y(t) - r(t)$ ($x_i(t) = \int \mathrm{d}t \curly{e(t)}$). Then
 \begin{align*}
-\boldsymbol{\dispdot[0mu]{\hat{x}}_a}(t) &= \boldsymbol{A}_a\hat{\boldsymbol{x}}_a(t) + \boldsymbol{b}_a \hat{\boldsymbol{u}}_a(t) + \boldsymbol{b}_{d_a} \hat{d}(t) + \boldsymbol{r}(t)
+\boldsymbol{\dispdot[0mu]{\hat{x}}_a}(t) &= \boldsymbol{A}_a\hat{\boldsymbol{x}}_a(t) + \boldsymbol{b}_a \hat{\boldsymbol{u}}_a(t) + \boldsymbol{b}_{d_a} \hat{d}(t) + \boldsymbol{r}(t),
 \\[11pt]
-\hat{y}(t) &= \boldsymbol{c}_a \hat{\boldsymbol{x}}_a(t)
+\hat{y}(t) &= \boldsymbol{c}_a \hat{\boldsymbol{x}}_a(t),
 \end{align*}
-and
+with
 \begingroup
 \allowdisplaybreaks
 \begin{align}
-\boldsymbol{x}_a &=
+\hat{\boldsymbol{x}}_a (t) &=
 \begin{bmatrix}
-\hat{v}_{C1} & \hat{v}_{C2} & \hat{i}_{L1} & \hat{i}_{L2} & x_i
-\end{bmatrix}^\intercal
+\hat{v}_{C1} (t) & \hat{v}_{C2} (t) & \hat{i}_{L1} (t) & \hat{i}_{L2} (t) & x_i (t)
+\end{bmatrix}^\intercal,
 \\[11pt]
-\boldsymbol{u}_a &=
+\hat{\boldsymbol{u}}_a (t) &=
 \begin{bmatrix}
-v_g - V_g & 0 & 0 & 0 & 0
-\end{bmatrix}^\intercal
+\hat{\boldsymbol{u}} (t) \\ 0
+\end{bmatrix},
 \\[11pt]
 \boldsymbol{r}(t) &=
 \begin{bmatrix}
 0 & 0 & 0 & 0 & \minus r(t)
-\end{bmatrix}^\intercal
+\end{bmatrix}^\intercal,
 \\[11pt]
 \boldsymbol{A}_a &=
 \begin{bmatrix}
 \boldsymbol{A} & 0\\
 \boldsymbol{c} & 0
-\end{bmatrix}
+\end{bmatrix},
 \label{eqn:augmentedA}
 \\[11pt]
 \boldsymbol{b}_a
 &=
 \begin{bmatrix}
 \boldsymbol{b} \\ 0
-\end{bmatrix}
+\end{bmatrix},
 \\[11pt]
 \boldsymbol{b}_{d_a}
 &=
 \begin{bmatrix}
 \boldsymbol{b}_d \\ 0
-\end{bmatrix}
+\end{bmatrix},
 \label{eqn:augmentedbD}
 \\[11pt]
 \boldsymbol{c}_a
 &=
 \begin{bmatrix}
 \boldsymbol{c} & 0
-\end{bmatrix}
+\end{bmatrix}.
 \end{align}
 \endgroup
+The control system of Figure~\ref{block:integral} should satisfy the control objectives of Section~\ref{sec:objectives}. What is now required is a method for computing the gains $\boldsymbol{K}_f$ and $K_i$. These gains will determine the poles of the system, and thus the stability and transient behaviour.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Linear quadratic regulator (LQR); a method for determining $\boldsymbol{K}_f$ and $K_i$}\label{sec:LQR}
-\textsf{MATLAB}'s \texttt{lqr} function was used to compute the gains $\boldsymbol{K}_f$ and $K_i$. This function is called with arguments \texttt{(A, B, Q, R, N)}, which are used to generated the state feedback law $\boldsymbol{u} = -\boldsymbol{K}\boldsymbol{x}$ that minimises the quadratic cost function
+The linear quadratic regulator is a feedback controller that produces the control input to a state-space system according to the following proposition:
+~\\~\\
+\hspace*{\fill}
+\begin{minipage}[t]{0.8\textwidth}
+\textit{
+Assume that we aim to drive the initial state $x_0$ to the smallest possible value as soon as possible in the interval $[t_0, \, t_f]$, but without spending too much control effort (as measured by the magnitude of $u$) to achieve that goal. Then, the optimal regulator problem is defined as the problem of finding an optimal control $u(t)$ over
+the interval $[t_0, \, t_f]$ such that the following cost function is minimized.
+}\\
+(\cite{controlsystemdesign}, page 663).
+\end{minipage}
+\hspace*{\fill}
+~\\~\\~\\
+where the cost function the proposition is referring to is:
 \begin{align}
-J = \int_0^\infty \mathrm{d}t\curly{\boldsymbol{x}^\intercal \boldsymbol{Q} \boldsymbol{x}
-+ \boldsymbol{u}^\intercal \boldsymbol{R} \boldsymbol{u}
-+ 2 \boldsymbol{x}^\intercal \boldsymbol{N} \boldsymbol{u}}
+J_u \paren{\boldsymbol{x}(t_0), t_0} = \int_{t_0}^{t_f} \mathrm{d}t\curly{\boldsymbol{x}(t)^\intercal \boldsymbol{Q} \cdot \boldsymbol{x}(t)
++ u(t)^\intercal R \cdot u(t)
++ 2 \boldsymbol{x}(t)^\intercal \boldsymbol{N} \cdot u(t)}.
 \label{eqn:LQR}
+\end{align}
+%
+Here (Equation~(\ref{eqn:LQR})) $\boldsymbol{x}(t)$ refers to the system state vector and $u(t)$ refers to the control input. The augmented model of the \'Cuk converter has $\boldsymbol{x}(t) = \hat{\boldsymbol{x}}_a(t)$ and $u(t) = \hat{d}(t)$. $\boldsymbol{Q}$ is a diagonal nonnegative definite weight matrix that may be thought of as penalising the variation of the states comprising the state vector from their desired value. $R$ is a weight that penalises the control effort. $\boldsymbol{N}$ is almost always 0.
+\newpar
+\textsf{MATLAB}'s \texttt{lqr} function may be used to compute the gains $\boldsymbol{K}_f$ and $K_i$. This function is called with arguments \texttt{(A, B, Q, R, N)}, which are used to generated the state feedback law $\boldsymbol{u} = -\boldsymbol{K}\boldsymbol{x}$ that minimises the quadratic cost function (infinite-horizon version; note difference in integral terminals)
+\begin{align}
+J = \int_0^\infty \mathrm{d}t\curly{\boldsymbol{x}(t)^\intercal \boldsymbol{Q} \cdot \boldsymbol{x}(t)
++ u(t)^\intercal R \cdot u(t)
++ 2 \boldsymbol{x}(t)^\intercal \boldsymbol{N} \cdot u(t)}.
+\label{eqn:LQR2}
 \end{align}
 subject to system dynamics
 \begin{align*}
-\boldsymbol{\dot{x}} = \boldsymbol{A}\boldsymbol{x} + \boldsymbol{B}\boldsymbol{u}
+\boldsymbol{\dot{x}} = \boldsymbol{A}\boldsymbol{x} + \boldsymbol{B}\boldsymbol{u},
 \end{align*}
 and the conditions
 \begin{itemize}
@@ -393,15 +429,15 @@ and the conditions
 \end{itemize}
 For our purposes the \texttt{lqr} function is called as
 \begin{align*}
-\texttt{lqr(A\_a, bD\_a, w*q, r)}
+\texttt{lqr(A\_a, bD\_a, w*q, r)},
 \end{align*}
 where, for our system
 \begin{itemize}
 	\item $\texttt{A\_a}$: $\boldsymbol{A}_a$ of Equation~\ref{eqn:augmentedA}
 	\item $\texttt{bD\_a}$: $\boldsymbol{b}_{d_a}$ of Equation~\ref{eqn:augmentedbD}
 	\item $\texttt{w} \in \Re$: scalar multiplicative factor of $q$
-	\item $\texttt{q}\in \Re^{5 \times 5}$: $\boldsymbol{Q}$ of Equation~\ref{eqn:LQR}; diagonal positive definite weight matrix that penalises variation of states from desired value
-	\item $\texttt{r} \in \Re$: $\boldsymbol{R}$ of Equation~\ref{eqn:LQR}; weight that penalises control effort
+	\item $\texttt{q}\in \Re^{5 \times 5}$: $\boldsymbol{Q}$ of Equation~\ref{eqn:LQR}
+	\item $\texttt{r} \in \Re$: $\boldsymbol{R}$ of Equation~\ref{eqn:LQR}
 	\item $\boldsymbol{N} = 0$
 \end{itemize}
 $\boldsymbol{K}$ is extracted as
@@ -412,52 +448,50 @@ $\boldsymbol{K}$ is extracted as
 \boldsymbol{K}_f & K_i
 \end{bmatrix}
 =
-\boldsymbol{R}^{\minus 1} \paren{\boldsymbol{B}^\intercal \boldsymbol{S} + \boldsymbol{N}^\intercal}
+\boldsymbol{R}^{\minus 1} \paren{\boldsymbol{B}^\intercal \boldsymbol{S} + \boldsymbol{N}^\intercal},
 \end{align*}
 where $\boldsymbol{S}$ is the solution to the algebraic Riccati equation
 \begin{align*}
-\boldsymbol{A}^\intercal \boldsymbol{S} + \boldsymbol{S}\boldsymbol{A} - \paren{\boldsymbol{S}\boldsymbol{B} + \boldsymbol{N}}\boldsymbol{R}^{\minus 1} \paren{\boldsymbol{B}^\intercal \boldsymbol{S} + \boldsymbol{N}^\intercal} + \boldsymbol{Q} = 0
+\boldsymbol{A}^\intercal \boldsymbol{S} + \boldsymbol{S}\boldsymbol{A} - \paren{\boldsymbol{S}\boldsymbol{B} + \boldsymbol{N}}\boldsymbol{R}^{\minus 1} \paren{\boldsymbol{B}^\intercal \boldsymbol{S} + \boldsymbol{N}^\intercal} + \boldsymbol{Q} = 0.
 \end{align*}
+Using LQR to compute the control gains $\boldsymbol{K}_f$ and $K_i$ produces closed-loop transient behaviour with a good compromise between settling time and overshoot, `without spending too much control effort'~(\cite{controlsystemdesign}, page 663).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Discretisation: estimating a continuous-time system using a discrete-time system}\label{sec:disc}
-The control theory thus far has operated in the continuous-time domain. For implementation of our control algorithm on the microcontroller, the observer system and integral action must be discretised. The appropriate discretisation method for our system is `zero-order hold' (ZOH). In this method the control inputs ($\hat{d}(t)$, $\hat{\boldsymbol{u}}(t)$, $y(t)$, and $\hat{y}(t)$) are assumed to be constant over the sampling period $T_s$.
+\subsection{Discretisation: estimating a continuous-time system using a \\ discrete-time system}\label{sec:disc}
+The control theory thus far has operated in the continuous-time domain. For implementation of our control algorithm on the microcontroller, the observer system and integral action must be discretised. The appropriate discretisation method for a microcontroller-based control system is `zero-order hold' (ZOH). In this method the control inputs ($\hat{d}(t)$, $\hat{\boldsymbol{u}}(t)$, $y(t)$, and $\hat{y}(t)$) are assumed to be constant over the sampling period $T_s$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Discretising the observer - ZOH}
-Our observer system has the following description
-\begin{align*}
-\boldsymbol{\dot{\hat{x}}}_\ell (t) = \squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\hat{y}(t)
-\end{align*}
-where
-\begin{itemize}
-\item $\hat{\boldsymbol{x}}_\ell(t)$: state vector produced by observer (estimated values)
-\item $\hat{y}(t) = y(t) - Y$: output perturbation (measured output subtract steady-state output)
-\end{itemize}
-% \newpar
-Assuming ZOH with a sampling time $T_s = \sfrac{1}{f_\text{sample}}$, the observer is described  by
-\begin{align*}
-\hat{\boldsymbol{x}}_\ell [k + 1] &= \overline{\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}}\hat{\boldsymbol{x}}_\ell[k] + \overline{\boldsymbol{b}}\hat{\boldsymbol{u}}[k] + \overline{\boldsymbol{b}_d} \hat{d}[k] + \overline{\boldsymbol{L}}\hat{y}[k]
-\end{align*}
-where
-\begin{align*}
-\overline{\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}} &= \exp \squarey{\paren{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}T_s}
+Our observer system has the following description (repeat of Equation~(\ref{eqn:observer2}))
+\begin{align}
+\boldsymbol{\dot{\hat{x}}}_\ell (t) = \squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}\hat{\boldsymbol{x}}_\ell(t) + \boldsymbol{b}\hat{\boldsymbol{u}}(t) + \boldsymbol{b}_d \hat{d}(t) + \boldsymbol{L}\hat{y}(t),
+\end{align}
+Assuming ZOH with a sampling time $T_s = \sfrac{1}{f_\text{sample}}$, the observer system is described in discrete-time as
+\begin{align}
+\hat{\boldsymbol{x}}_\ell [k + 1] &= \overline{\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}}\hat{\boldsymbol{x}}_\ell[k] + \overline{\boldsymbol{b}}\hat{\boldsymbol{u}}[k] + \overline{\boldsymbol{b}_d} \hat{d}[k] + \overline{\boldsymbol{L}}\hat{y}[k],\label{eqn:observer_discrete}
+\end{align}
+at integer time step $k$, and where
+\begingroup
+\allowdisplaybreaks
+\begin{align}
+\overline{\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}} &= \exp \squarey{\paren{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}T_s},
 \\[11pt]
-\overline{\boldsymbol{b}} &= \paren{\int_0^{T_s} \mathrm{d}\tau \curly{\exp \squarey{\paren{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}\tau}}}\boldsymbol{b}
+\overline{\boldsymbol{b}} &= \paren{\int_0^{T_s} \mathrm{d}\tau \curly{\exp \squarey{\paren{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}\tau}}}\boldsymbol{b}\nonumber
 \\[11pt]
 &= \paren{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}^{-1}
 \paren{\overline{\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}} - \boldsymbol{I}_4}
-\boldsymbol{b}
+\boldsymbol{b},
 \\[11pt]
 \overline{\boldsymbol{b}_d} &=
 \paren{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}^{-1}
 \paren{\overline{\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}} - \boldsymbol{I}_4}
-\boldsymbol{b}_d
+\boldsymbol{b}_d,
 \\[11pt]
 \overline{\boldsymbol{L}} &=
 \paren{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}^{-1}
 \paren{\overline{\squarey{\boldsymbol{A} - \boldsymbol{L}\boldsymbol{c}}} - \boldsymbol{I}_4}
-\boldsymbol{L}
-\end{align*}
+\boldsymbol{L}.
+\end{align}
+\endgroup
 and where $\boldsymbol{I}_4$ is the identity matrix of dimension 4.
 \newpar
 The block diagram of the ZOH-discretised observer is provided in Figure~\ref{block:observer_discrete}.
@@ -497,15 +531,16 @@ The block diagram of the ZOH-discretised observer is provided in Figure~\ref{blo
 \coordinate[label = above:$\hat{\boldsymbol{x}}_\ell\squarey{k}$] (hatx) at (9,0);
 \end{tikzpicture}
 }
-\caption{}
+\caption{Block diagram of observer discretised under zero-order hold; compare with continuous-time version of Figure~\ref{block:observer2}}
 \label{block:observer_discrete}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Discretising integral action - forward-euler integration}
-Discrete time integral action under the forward-euler method is achieved through the transfer function of Equation~\ref{eqn:integral_discrete}
+Discrete time integral action under the forward-euler method is achieved through the transfer function
 \begin{align}\label{eqn:integral_discrete}
-H(z) = \frac{T_s}{z - 1}
+H(z) = \frac{T_s}{z - 1}.
 \end{align}
+In terms of block diagrams, the integral action integrator block $1/s$ is replaced with $H(z) = \frac{T_s}{z - 1}$, assuming the control inputs are constant over the sampling period $T_s$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Augmented control loop - discrete time}\label{sec:control_ultimate}
 The block diagram for the resulting fully-discrete control loop is given in Figure~\ref{block:control_discrete}.
@@ -529,10 +564,10 @@ The block diagram for the resulting fully-discrete control loop is given in Figu
 \draw[->, ultra thick] (s1) -- (i1);
 \draw[->, ultra thick] (i1) -- node [anchor = south, pos = 0.8] {$+$} (s2);
 \draw[->, ultra thick] (9,0) -- (9,-2) -- (bA);
-\draw[->, ultra thick] (bA) -- (5,-2) -- (5,-1) -- node [anchor = east, pos = 0.1] {$+$} (s1);
-\draw[->, ultra thick] (bbD) -- (3,1) -- node [anchor = south, pos = 0.9] {$+$} (s1);
+\draw[->, ultra thick] (bA) -- (5,-2) -- (5,-1) -- node [anchor = east, pos = 0.01] {$+$} (s1);
+\draw[->, ultra thick] (bbD) -- (3,1) -- node [anchor = south, pos = 0.85] {$+$} (s1);
 % more observer lines
-\draw[->, ultra thick] (bL) -- (3,-1) -- node [anchor = east, pos = 0.8] {$+$} (s1);
+\draw[->, ultra thick] (bL) -- (3,-1) -- node [anchor = east, pos = 0.85] {$+$} (s1);
 \draw[->] (0,-1) -- (bL);
 \draw[->, ultra thick] (11,4) -- node [anchor = west, pos = 0.9] {$+$} (s2);
 \draw[->, ultra thick] (s2) -- (13,0);
@@ -559,17 +594,18 @@ The block diagram for the resulting fully-discrete control loop is given in Figu
 \draw[->] (-8.5,1) -- node [anchor = south, pos = 0.8] {$-$} (s4);
 \draw[->] (s4) -- (i2);
 \draw[->] (i2) -- (bKi);
-\draw[->] (bKi) -- node [anchor = south, pos = 0.8] {$+$} (s5);
+\draw[->] (bKi) -- node [anchor = south, pos = 0.7] {$+$} (s5);
 \draw[->] (-8.5,-1) -- (-7,-1) -- node [anchor = east, pos = 0.8] {$+$} (s4);
 % more lines
-\draw[->] (-0.2,1) -- (-0.2,4);
+\draw[->] (-0.1,1) -- (-0.1,4);
 % more labels
-\coordinate[label = above:{to converter circuit}] (dout) at (-0.2,4);
+\coordinate[label = above:{to converter circuit}] (dout) at (-0.1,4);
 \end{tikzpicture}
 }
-\caption{}
+\caption[Caption without FN]{Block diagram of achieving discrete-time observer state feedback and integral action acting on the model of Equation~(\ref{eqn:timevarying2}); compare with continuous-time version of Figure~\ref{block:integral}\footnotemark}
 \label{block:control_discrete}
 \end{figure}
+\footnotetext{Don't forget the note on page~\pageref{block:feedback} regarding the meaning of `to converter circuit'.}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Control summary}
 At integer time step $k$:

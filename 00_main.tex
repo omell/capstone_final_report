@@ -32,6 +32,8 @@
 \usepackage{framed}
 \usepackage{pdfpages}
 \usepackage{comment}
+% \usepackage{sectsty}
+% \sectionfont{\leftskip=0pt plus 1fil \rightskip=0pt plus -1fil}
 % \usetikzlibrary{external}
 % \tikzexternalize[prefix = tikzfigures/]
 % \tikzexternaldisable
@@ -123,7 +125,9 @@
 	{\scshape\Large Preliminary report\par}
 	\vspace{1cm}
 	{\huge\bfseries PD1: Ultra-capacitor Charge \\ Management System\par}
-	\vspace{4cm}
+	\vspace{0.5cm}
+	{\Large A USB benchtop power supply\par}
+	\vspace{2cm}
 	{\large\itshape Liam Van Hees 695313, Mia Ito 692296, Oscar Salt 695724\par}
 	\vfill
 	supervised by\par
@@ -150,14 +154,21 @@
 \newpage
 \input{03_backgroundtheory.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% design development
 \newpage
 \input{04_design_development_control.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \input{05_design_development_hardware.tex}
+% \newpage
+% \input{05b_design_development_programming.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% implementation
 \newpage
-\input{06_programming.tex}
+\input{05c_implementation_control.tex}
+\newpage
+\input{06_implementation_hardware.tex}
+\newpage
+\input{06b_implementation_programming.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \input{07_results.tex}

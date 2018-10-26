@@ -1,0 +1,29 @@
+\section{Design development - firmware and software}
+\begin{comment}
+     modules required on microcontroller for product to satisfy objectives of Section~\ref{sec:objectives}
+    \begin{itemize}
+        \item timer module for guaranteed execution of control loop regime at \hl{desired} frequency
+        \item module to handle reading and processing of DC-DC converter circuit voltages
+        \item timer module for microcontroller to transmit to user interface
+        \item communication module for microcontroller to receive from user interface
+    \end{itemize}
+    \hl{in implementation section explain timer modules in detail (frequency, configuration etc.) (timer.c); explain UART.c; explain ADC.c; explain PWM.c; explain main.c}   
+\end{comment}
+
+\hl{ADD INTRO HERE}
+
+\subsection{Computation of control loop}
+The controller was designed in \hl{Section XXX}. It takes two inputs, the voltage across the ultra-capacitors and the voltage at the load to computes the duty cycle to be sent to the DC-DC converter as output. The controller loop must run at a chosen frequency and also must be able to compute the control signal within one interval. Following peripherals were configured to achieve the action. 
+
+\subsubsection{Timer}
+The timer is commonly used for running an action at the desired frequency. The MCU has an event trigger feature, which is available on Timer2. Timer 2 was used for running the control loop. It was configured to set the interrupt flag at the chosen frequency and also triggers ADC to sample. 
+
+\subsubsection{ADC}
+The MCU is responsible for taking the measurements and as introduced in \hl{Section XXX}, the MCU has four dedicated cores. Two of the dedicated cores are configured to take samples simultaneously. They are also triggered by the timer interrupt to sample at the start of each interval. 
+
+\subsubsection{PWM}
+The controller computes the duty cycle of PWM signal as control output which is then sent to the DC-DC converter. There is five PWM generator on MCU and one of the pins was configured to generate the signal at a chosen frequency. 
+
+
+\subsection{Communication over UART}
+The Universal Asynchronous Receiver Transmitter (UART) is a simple and commonly used serial communication protocol and it was used to communicate with the hose user.
