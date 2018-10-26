@@ -2,13 +2,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Introduction}
 ~\\
-To achieve control of the DC-DC converter, an element of the solution as introduced in Section~\ref{sec:solution}, a linear model of the DC-DC converter circuit must be generated. This section will follow the generation of this model through the technique of state-space averaging as applied to the \'Cuk converter. Both this technique and this converter circuit were first introduced in the Middlebrook \& \'Cuk paper of reference~\cite{cuk}. This paper will be heavily referenced throughout this section.
+To achieve control of the DC-DC converter, an element of the solution as introduced in Section~\ref{sec:objectives}, a linear model of the DC-DC converter circuit must be generated. This section will follow the generation of this model through the technique of state-space averaging as applied to the \'Cuk converter. Both this technique and this converter circuit were first introduced in the Middlebrook \& \'Cuk paper of reference~\cite{cuk}. This paper will be heavily referenced throughout this section.
 \paragraph{Notation}
 \begin{itemize}
     \item $\boldsymbol{Z}$ (boldface): vector or matrix quantity $\boldsymbol{Z}$
     \item $\boldsymbol{Z}$ or $Z$ (capital letter): steady-state quantity
     \begin{itemize}
-        \item excluding $\boldsymbol{A}$, $\boldsymbol{A}_1$, and $\boldsymbol{A}_2$, which are matrices used in describing state-space systems
+        \item excluding $\boldsymbol{A}$, $\boldsymbol{A}_1$, and $\boldsymbol{A}_2$, which are matrices used in describing state-space systems\footnote{$\boldsymbol{b}$ and $\boldsymbol{c}$ matrices as referenced in this report are lowercase}
     \end{itemize}
     \item $\hat{z}$ (hat): time-varying quantity
 \end{itemize}
@@ -111,16 +111,16 @@ For the \'{C}uk converter, continuous conduction mode is guaranteed for $\frac{(
 } the system may be described by 2 sets of equations, 1 for each switching interval:
 \begin{align}
 0 \leq t < d \cdot T \text{ (`on')}:
-\dot{\boldsymbol{x}}(t) &= \boldsymbol{A}_1 \boldsymbol{x}(t) + \boldsymbol{b}_1 \boldsymbol{u}(t)
+\dot{\boldsymbol{x}}(t) &= \boldsymbol{A}_1 \boldsymbol{x}(t) + \boldsymbol{b}_1 \boldsymbol{u}(t),
 \nonumber
 \\[11pt]
-y_1&= \boldsymbol{c}_1 \boldsymbol{x}(t)\label{eqn:equations_on}
+y_1&= \boldsymbol{c}_1 \boldsymbol{x}(t),\label{eqn:equations_on}
 \\[11pt]
 d \cdot T \leq t < T \text{ (`off')}:
-\dot{\boldsymbol{x}}(t) &= \boldsymbol{A}_2 \boldsymbol{x}(t) + \boldsymbol{b}_2 \boldsymbol{u}(t)
+\dot{\boldsymbol{x}}(t) &= \boldsymbol{A}_2 \boldsymbol{x}(t) + \boldsymbol{b}_2 \boldsymbol{u}(t),
 \nonumber
 \\[11pt]
-y_2&= \boldsymbol{c}_2 \boldsymbol{x}(t)\label{eqn:equations_off}
+y_2&= \boldsymbol{c}_2 \boldsymbol{x}(t).\label{eqn:equations_off}
 \end{align}
 where
 \begin{itemize}
@@ -225,24 +225,24 @@ The technique of state-space averaging may be employed to generate a linear cont
 \begin{align*}
 \dot{\boldsymbol{x}}(t)
 &= d \squarey{\boldsymbol{A}_1 \boldsymbol{x}(t) + \boldsymbol{b}_1 \boldsymbol{u}(t)}
-+ (1 - d) \squarey{\boldsymbol{A}_2 \boldsymbol{x}(t) + \boldsymbol{b}_2 \boldsymbol{u}(t)}
++ (1 - d) \squarey{\boldsymbol{A}_2 \boldsymbol{x}(t) + \boldsymbol{b}_2 \boldsymbol{u}(t)},
 \\[11pt]
-y(t) &= d \squarey{\boldsymbol{c}_1 \boldsymbol{x}(t)} + (1 - d) \squarey{\boldsymbol{c}_2 \boldsymbol{x}(t)}
+y(t) &= d \squarey{\boldsymbol{c}_1 \boldsymbol{x}(t)} + (1 - d) \squarey{\boldsymbol{c}_2 \boldsymbol{x}(t)}.
 \end{align*}
 % ~\\
 Re-arranging:
 \begin{align*}
 \dot{\boldsymbol{x}}(t)
 &= \squarey{d \boldsymbol{A}_1 + (1 - d) \boldsymbol{A}_2}\boldsymbol{x}(t)
-+ \squarey{d \boldsymbol{b}_1 + (1 - d) \boldsymbol{b}_2}\boldsymbol{u}(t)
++ \squarey{d \boldsymbol{b}_1 + (1 - d) \boldsymbol{b}_2}\boldsymbol{u}(t),
 \\[11pt]
-y(t) &= \squarey{d\boldsymbol{c}_1 + (1 - d) \boldsymbol{c}_2} \boldsymbol{x}(t)
+y(t) &= \squarey{d\boldsymbol{c}_1 + (1 - d) \boldsymbol{c}_2} \boldsymbol{x}(t).
 \end{align*}
 Note that the duty ratio is considered to be constant over 1 switching cycle in these equations (although it may vary from cycle to cycle).
-% ~\\
-% ~\rule{\textwidth}{0.5pt}
+~\\
+~\rule{\textwidth}{0.5pt}
 % \newpar
-\clearpage
+% \clearpage
 Making the further assumption of a constant duty ratio between switching cycles, $d(t) = D$, permits the construction of $\boldsymbol{A}$, $\boldsymbol{b}$, and $\boldsymbol{c}$ matrices that describe a new state-space system:
 \begin{align}
 &
@@ -269,9 +269,9 @@ Making the further assumption of a constant duty ratio between switching cycles,
 \\[11pt]
 y(t) &= \boldsymbol{c} \boldsymbol{x}(t). \label{eqn:averaging}
 \end{align}
-~\rule{\textwidth}{0.5pt}
+\rule{\textwidth}{0.5pt}
 % \clearpage
-According Equation~\ref{eqn:averaging}, a perturbation in the input vector $\boldsymbol{u}(t)$, described by $\boldsymbol{u}(t) = \boldsymbol{U} + \, \hat{\boldsymbol{u}}(t)$, produces a perturbation in the state vector $\boldsymbol{x}(t) = \boldsymbol{X} + \, \hat{\boldsymbol{x}}(t)$ and output $y(t) = Y + \, \hat{y}(t)$ and leads to the following description of the system:
+According Equation~\ref{eqn:averaging}, a perturbation in the input vector $\boldsymbol{u}(t)$, described by $\boldsymbol{u}(t) = \, \boldsymbol{U} + \, \hat{\boldsymbol{u}}(t)$, produces a perturbation in the state vector $\boldsymbol{x}(t) = \, \boldsymbol{X} + \, \hat{\boldsymbol{x}}(t)$ and output $y(t) = \, Y + \, \hat{y}(t)$ and leads to the following description of the system:
 \begin{align}
 \dot{\boldsymbol{x}}(t) = \frac{\mathrm{d}}{\mathrm{d} t} \squarey{\boldsymbol{X} + \hat{\boldsymbol{x}}(t)} = \dot{\hat{\boldsymbol{x}}}(t)
 &=
@@ -312,35 +312,38 @@ Y &= \minus \boldsymbol{c} \boldsymbol{A}^{-1} \boldsymbol{b} \boldsymbol{U}
 \fi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \clearpage
-A perturbation in the duty ratio $d(t) = D + \, \hat{d}(t)$ may be considered in addition to the perturbation in input vector. The combined effect of these perturbations produces the following system description:
+A perturbation in the duty ratio may be considered in addition to the perturbation in input vector. The combined effect of these perturbations produces the following system description:
 \begingroup
 \allowdisplaybreaks
-\begin{align*}
-\dot{\hat{\boldsymbol{x}}}(t)
+\begin{align}
+&d(t) = \, D + \, \hat{d}(t) &&\paren{\text{and} \qquad \boldsymbol{u}(t) = \, \boldsymbol{U} + \, \hat{\boldsymbol{u}}(t)} \label{eqn:dDhatd}
+\end{align}
+\begin{align}
+\implies \dot{\hat{\boldsymbol{x}}}(t)
 = \, &\boldsymbol{A} \boldsymbol{X} + \boldsymbol{b} \boldsymbol{U}
-&&\text{`DC term'}
+&&\text{`DC term'}\nonumber
 \\[11pt]
 + \, &\boldsymbol{A} \hat{\boldsymbol{x}}(t) + \boldsymbol{b} \hat{\boldsymbol{u}}(t)
-&&\text{`input vector perturbation'}
+&&\text{`input vector perturbation'}\nonumber
 \\[11pt]
 + \, &\squarey{\paren{\boldsymbol{A}_1 - \boldsymbol{A}_2}\boldsymbol{X} + \paren{\boldsymbol{b}_1 - \boldsymbol{b}_2}\boldsymbol{U}} \hat{d}(t)
-&&\text{`duty ratio perturbation'}
+&&\text{`duty ratio perturbation'}\nonumber
 \\[11pt]
 + \, &\squarey{\paren{\boldsymbol{A}_1 - \boldsymbol{A}_2}\hat{\boldsymbol{x}}(t) + \paren{\boldsymbol{b}_1 - \boldsymbol{b}_2}\hat{\boldsymbol{u}}(t)} \hat{d}(t)
-&&\text{`non-linear second-order term'}
+&&\text{`non-linear second-order term'}\nonumber
 \\[11pt]
 Y + \hat{y} = \, &\boldsymbol{c} \boldsymbol{X}
-&&\text{`DC term'}
+&&\text{`DC term'}\nonumber
 \\[11pt]
 + \, &\boldsymbol{c} \hat{\boldsymbol{x}}(t)
-&&\text{`AC term'}
+&&\text{`AC term'}\nonumber
 \\[11pt]
 + \, &\paren{\boldsymbol{c}_1 - \boldsymbol{c}_2} \boldsymbol{X} \hat{d}(t)
-&&\text{`AC term'}
+&&\text{`AC term'}\nonumber
 \\[11pt]
 + \, &\paren{\boldsymbol{c}_1 - \boldsymbol{c}_2} \hat{\boldsymbol{x}}(t) \hat{d}(t)
-&&\text{`non-linear term'}
-\end{align*}
+&&\text{`non-linear term'}\nonumber
+\end{align}
 \endgroup
 The naming of these terms comes from \cite{cuk} (page 528).
 % ~\\
@@ -529,8 +532,6 @@ To summarise this section: a linear state-space model of the \'Cuk converter of 
 \end{align}
 where Equation~(\ref{eqn:timevarying2}) is obtained by updating Equation~(\ref{eqn:timevarying}) according to Equation~(\ref{eqn:bD}) and the footnote of Page~\pageref{eqn:timevarying}.
 \newpar
-\hl{TODO fix with other parameters affecting operating point linearised at}
+It should be emphasised that the entries in the matrices of Equation~(\ref{eqn:timevarying2}) are a function of the steady-state duty ratio $D$: generating a model of the circuit requires the selection of a duty ratio to linearise about. The steady-state quantities $\boldsymbol{X}$ and $\boldsymbol{Y}$ depend on the selection of duty ratio also. The other parameters defining the operating point that is selected for linearisation about will be discussed at the beginning of Section~\ref{sec:controller}.
 \newpar
-It should be emphasised that the entries in the matrices of Equation~(\ref{eqn:timevarying2}) are a function of the steady-state duty ratio $D$: generating a model of the circuit requires the selection of a duty ratio to linearise about. The steady-state quantities $\boldsymbol{X}$ and $\boldsymbol{Y}$ depend on the selection of duty ratio also.
-\newpar
-The model in Equation~(\ref{eqn:timevarying2}) is linear. Linear control methods may thus be applied. Section~\ref{sec:controller} will now follow the development of a controller to achieve goals outlined in Section~\ref{sec:solution}.
+The model in Equation~(\ref{eqn:timevarying2}) is linear. Linear control methods may thus be applied. Section~\ref{sec:controller} will now follow the development of a controller to achieve goals outlined in Section~\ref{sec:objectives}.

@@ -8,7 +8,8 @@ void PWMInit( void ){
     ACLKCONbits.SELACLK = 1; /* Auxiliary Oscillator provides the clock source*/
     ACLKCONbits.APSTSCLR = 7; /* Divide Auxiliary clock by 1 */
     ACLKCONbits.ENAPLL = 1;  /* DISABLE Auxiliary PLL */
-    while(ACLKCONbits.APLLCK == 0); /* Wait for Auxiliary PLL to Lock while(ACLKCONbits.APLLCK! = 1) */
+    /* Wait for Auxiliary PLL to Lock while(ACLKCONbits.APLLCK! = 1) */
+    while(ACLKCONbits.APLLCK == 0); 
         
     PWMCON1bits.CAM = 0; /* For Edge-Aligned Mode */
 
